@@ -1,40 +1,36 @@
-import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:pill_buddy/pages/add_medication_pages/purpose_page_select_disease.dart';
-import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:provider/provider.dart';
+import "package:animate_do/animate_do.dart";
+import "package:flutter/material.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart";
+import "package:pill_buddy/pages/providers/medication_provider.dart";
+import "package:provider/provider.dart";
 
-class MedFormPage extends StatefulWidget {
-  const MedFormPage({super.key});
+class EveryDayPage extends StatefulWidget {
+  const EveryDayPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MedFormPageState createState() => _MedFormPageState();
+  State<EveryDayPage> createState() => _HowOftenPageState();
 }
 
-class _MedFormPageState extends State<MedFormPage> {
-  String? selectedMedForm;
+class _HowOftenPageState extends State<EveryDayPage> {
+  String? selectedSchedEveryday;
 
   @override
   Widget build(BuildContext context) {
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
-
-    final List<String> medFormOptions = [
-      "Pill",
-      "Injection",
-      "Solution (Liquid)",
-      "Drops",
-      "Inhaler",
-      "Powder",
-    ];
-
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final List<String> medFormOptions = [
+      "Once a day",
+      "Twice a day",
+      "3 times a day",
+      "More than 3 times a day",
+      "Every X hours",
+    ];
 
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text("Form", style: TextStyle(color: Colors.white)),
+        title: Text(selectedMed, style: const TextStyle(color: Colors.white)),
         elevation: 0,
         scrolledUnderElevation: 0, // Prevents graying effect when scrolling
         leading: IconButton(
@@ -67,11 +63,10 @@ class _MedFormPageState extends State<MedFormPage> {
               child: FadeIn(
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 500),
-                child: Text(
-                  "What form is the med\n$selectedMed?",
+                child: const Text(
+                  "How often do you take it?",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -84,17 +79,14 @@ class _MedFormPageState extends State<MedFormPage> {
                 itemCount: medFormOptions.length,
                 itemBuilder: (context, index) {
                   final medForm = medFormOptions[index];
-                  final isSelected = selectedMedForm == medForm;
+                  final isSelected = selectedSchedEveryday == medForm;
 
                   return SlideInUp(
                     delay: Duration(milliseconds: 100 + (index * 50)),
                     child: GestureDetector(
                       onTap: () {
-                        Provider.of<MedicationProvider>(context, listen: false)
-                            .selectForm(medForm);
-
                         setState(() {
-                          selectedMedForm = medForm;
+                          selectedSchedEveryday = medForm;
                         });
                       },
                       child: Container(
@@ -146,16 +138,16 @@ class _MedFormPageState extends State<MedFormPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor:
-                        selectedMedForm != null ? primaryColor : Colors.grey,
+                    backgroundColor: selectedSchedEveryday != null
+                        ? primaryColor
+                        : Colors.grey,
                   ),
-                  onPressed: selectedMedForm != null
+                  onPressed: selectedSchedEveryday != null
                       ? () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    const PurposePageSelectDisease()),
+                                builder: (context) => const OnceADayPage()),
                           );
                         }
                       : null,

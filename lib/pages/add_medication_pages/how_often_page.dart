@@ -1,40 +1,39 @@
-import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:pill_buddy/pages/add_medication_pages/purpose_page_select_disease.dart';
-import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:provider/provider.dart';
+import "package:animate_do/animate_do.dart";
+import "package:flutter/material.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/every_day_page.dart";
+import "package:pill_buddy/pages/providers/medication_provider.dart";
+import "package:provider/provider.dart";
 
-class MedFormPage extends StatefulWidget {
-  const MedFormPage({super.key});
+class HowOftenPage extends StatefulWidget {
+  const HowOftenPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MedFormPageState createState() => _MedFormPageState();
+  State<HowOftenPage> createState() => _HowOftenPageState();
 }
 
-class _MedFormPageState extends State<MedFormPage> {
-  String? selectedMedForm;
+class _HowOftenPageState extends State<HowOftenPage> {
+  String? selectedSched;
 
   @override
   Widget build(BuildContext context) {
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
-
-    final List<String> medFormOptions = [
-      "Pill",
-      "Injection",
-      "Solution (Liquid)",
-      "Drops",
-      "Inhaler",
-      "Powder",
-    ];
-
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final List<String> medFormOptions = [
+      "Every day",
+      "Every other day",
+      "Specific days of the week",
+      "On a recurring cycle",
+      "Every X days",
+      "Every X weeks",
+      "Every X months",
+      "Only as needed",
+    ];
 
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text("Form", style: TextStyle(color: Colors.white)),
+        title: Text(selectedMed, style: const TextStyle(color: Colors.white)),
         elevation: 0,
         scrolledUnderElevation: 0, // Prevents graying effect when scrolling
         leading: IconButton(
@@ -67,11 +66,10 @@ class _MedFormPageState extends State<MedFormPage> {
               child: FadeIn(
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 500),
-                child: Text(
-                  "What form is the med\n$selectedMed?",
+                child: const Text(
+                  "How often do you take it?",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -84,17 +82,14 @@ class _MedFormPageState extends State<MedFormPage> {
                 itemCount: medFormOptions.length,
                 itemBuilder: (context, index) {
                   final medForm = medFormOptions[index];
-                  final isSelected = selectedMedForm == medForm;
+                  final isSelected = selectedSched == medForm;
 
                   return SlideInUp(
                     delay: Duration(milliseconds: 100 + (index * 50)),
                     child: GestureDetector(
                       onTap: () {
-                        Provider.of<MedicationProvider>(context, listen: false)
-                            .selectForm(medForm);
-
                         setState(() {
-                          selectedMedForm = medForm;
+                          selectedSched = medForm;
                         });
                       },
                       child: Container(
@@ -147,16 +142,24 @@ class _MedFormPageState extends State<MedFormPage> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor:
-                        selectedMedForm != null ? primaryColor : Colors.grey,
+                        selectedSched != null ? primaryColor : Colors.grey,
                   ),
-                  onPressed: selectedMedForm != null
+                  onPressed: selectedSched != null
                       ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const PurposePageSelectDisease()),
-                          );
+                          if (selectedSched == "Every day") {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const EveryDayPage()));
+                          } else if (selectedSched == "Every other day") {
+                          } else if (selectedSched ==
+                              "Specific days of the week") {
+                          } else if (selectedSched == "On a recurring cycle") {
+                          } else if (selectedSched == "Every X days") {
+                          } else if (selectedSched == "Every X weeks") {
+                          } else if (selectedSched == "Every X months") {
+                          } else {}
                         }
                       : null,
                   child: const Text(

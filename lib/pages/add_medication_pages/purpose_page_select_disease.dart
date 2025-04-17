@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/database/diseases_data.dart';
+import 'package:pill_buddy/pages/add_medication_pages/how_often_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/providers/purpose_provider.dart';
 import 'package:provider/provider.dart';
@@ -21,9 +20,6 @@ class _AddMedPageState extends State<PurposePageSelectDisease> {
   @override
   Widget build(BuildContext context) {
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
-
-    final selectedPurpose =
-        Provider.of<PurposeProvider>(context).selectedPurpose;
 
     return Scaffold(
       appBar: AppBar(
@@ -91,13 +87,11 @@ class _AddMedPageState extends State<PurposePageSelectDisease> {
               child: ElevatedButton(
                 onPressed: _isPurposeSelected
                     ? () {
-                        print(selectedPurpose);
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) => const MedFormPage()),
-                        // );
-                        // Proceed to next page or action
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HowOftenPage()),
+                        );
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
