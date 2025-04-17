@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/login_register_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/providers/purpose_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => MedicationProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => MedicationProvider()),
+        ChangeNotifierProvider(create: (_) => PurposeProvider()),
+      ],
       child: const MyApp(),
     ),
   );
