@@ -14,10 +14,12 @@ class AddMedNamePage extends StatefulWidget {
 
 class _AddMedPageState extends State<AddMedNamePage> {
   final TextEditingController _medController = TextEditingController();
+
   bool _isMedSelected = false;
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
@@ -43,9 +45,10 @@ class _AddMedPageState extends State<AddMedNamePage> {
                 border: OutlineInputBorder(),
                 suffixIcon: Icon(Icons.search),
               ),
-              onChanged: (text) {
+              onChanged: (medName) {
+                provider.selectPurpose(medName);
                 setState(() {
-                  _isMedSelected = text.isNotEmpty;
+                  _isMedSelected = medName.isNotEmpty;
                 });
               },
             ),

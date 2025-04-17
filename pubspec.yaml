@@ -33,6 +33,8 @@ dependencies:
   lucide_icons: ^0.257.0
   flutter_giphy_picker: ^1.0.2
   provider: ^6.1.4
+  flutter_time_picker_spinner: ^2.0.0
+  font_awesome_flutter: ^10.8.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

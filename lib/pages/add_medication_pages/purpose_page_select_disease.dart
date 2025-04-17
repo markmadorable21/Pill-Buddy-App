@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pill_buddy/database/diseases_data.dart';
 import 'package:pill_buddy/pages/add_medication_pages/how_often_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:pill_buddy/pages/providers/purpose_provider.dart';
+//import 'package:pill_buddy/pages/providers/purpose_provider.dart';
 import 'package:provider/provider.dart';
 
 class PurposePageSelectDisease extends StatefulWidget {
@@ -65,9 +65,9 @@ class _AddMedPageState extends State<PurposePageSelectDisease> {
                       .map((disease) => ListTile(
                             title: Text(disease),
                             onTap: () {
-                              Provider.of<PurposeProvider>(context,
+                              Provider.of<MedicationProvider>(context,
                                       listen: false)
-                                  .setPurpose(disease);
+                                  .selectPurpose(disease);
                               setState(() {
                                 _diseaseController.text = disease;
                                 _isPurposeSelected = true;

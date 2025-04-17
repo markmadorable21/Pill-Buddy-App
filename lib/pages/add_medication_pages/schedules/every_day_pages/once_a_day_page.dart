@@ -1,6 +1,9 @@
 import "package:flutter/material.dart";
 import "package:animate_do/animate_do.dart";
+import "package:intl/intl.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart";
 import "package:provider/provider.dart";
+import "package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart";
 import "package:pill_buddy/pages/providers/medication_provider.dart";
 
 class OnceADayPage extends StatefulWidget {
@@ -12,27 +15,31 @@ class OnceADayPage extends StatefulWidget {
 
 class _OnceADayPageState extends State<OnceADayPage> {
   final TextEditingController _doseController = TextEditingController();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  DateTime _selectedDateTime = DateTime.now();
+
+  void _showInvalidInputDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Invalid Input"),
+        content: const Text("Please enter a valid number."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationProvider>(context);
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
     final medForm = Provider.of<MedicationProvider>(context).selectedForm;
     final primaryColor = Theme.of(context).colorScheme.primary;
-
     final unit = Provider.of<MedicationProvider>(context).unitForForm;
-
-    Future<void> selectTime(BuildContext context) async {
-      final TimeOfDay? picked = await showTimePicker(
-        context: context,
-        initialTime: _selectedTime,
-      );
-      if (picked != null && picked != _selectedTime) {
-        setState(() {
-          _selectedTime = picked;
-        });
-      }
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -103,23 +110,31 @@ class _OnceADayPageState extends State<OnceADayPage> {
             const SizedBox(height: 24),
             FadeIn(
               delay: const Duration(milliseconds: 400),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Time: ${_selectedTime.format(context)}",
+                    "Time: ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}",
                     style: const TextStyle(fontSize: 18),
                   ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                  const SizedBox(height: 10),
+                  TimePickerSpinner(
+                    is24HourMode: false,
+                    normalTextStyle:
+                        const TextStyle(fontSize: 18, color: Colors.black54),
+                    highlightedTextStyle: TextStyle(
+                      fontSize: 22,
+                      color: primaryColor,
                     ),
-                    onPressed: () => selectTime(context),
-                    child: const Text("Pick Time",
-                        style: TextStyle(color: Colors.white)),
+                    spacing: 40,
+                    itemHeight: 40,
+                    isForce2Digits: true,
+                    time: _selectedDateTime,
+                    onTimeChange: (time) {
+                      setState(() {
+                        _selectedDateTime = time;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -141,7 +156,24 @@ class _OnceADayPageState extends State<OnceADayPage> {
                   ),
                   onPressed: _doseController.text.isNotEmpty
                       ? () {
-                          print('unit is $medForm');
+                          provider.selectFrequency("Once a day");
+                          provider.selectTime(
+                              DateFormat('hh:mm a').format(_selectedDateTime));
+                          provider.selectAmount(_doseController.text);
+                          final input = double.tryParse(_doseController.text);
+                          if (input == null || input <= 0) {
+                            _showInvalidInputDialog(); //invalid input
+                          } else {
+                            print('Form: $medForm');
+                            print(
+                                'Time selected: ${_selectedDateTime.toIso8601String()}');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ExpirationPage(),
+                              ),
+                            );
+                          }
                         }
                       : null,
                   child: const Text(
