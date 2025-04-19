@@ -4,6 +4,7 @@ import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/change_the_med_icon_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/set_treatment_duration_page.dart.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_refill_reminder_page.dart';
+import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -32,8 +33,87 @@ class _HomePageState extends State<OtherOptionsPage> {
     print("Amount: ${provider.selectedAmount}");
     print("Expiration: ${provider.selectedExpiration}");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Medication saved successfully!")),
+    _showConfirmationDialog(provider);
+  }
+
+  void _showConfirmationDialog(MedicationProvider provider) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "Confirm Medication Details",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildConfirmationItem("Name", provider.selectedMed),
+            _buildConfirmationItem("Form", provider.selectedForm),
+            _buildConfirmationItem("Purpose", provider.selectedPurpose),
+            _buildConfirmationItem("Frequency", provider.selectedFrequency),
+            _buildConfirmationItem("Time", provider.selectedTime),
+            _buildConfirmationItem("Amount", provider.selectedAmount),
+            _buildConfirmationItem("Expiration", provider.selectedExpiration),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.addMedicationEntry(
+                MedicationEntry(
+                  med: provider.selectedMed,
+                  form: provider.selectedForm,
+                  purpose: provider.selectedPurpose,
+                  frequency: provider.selectedFrequency,
+                  time: provider.selectedTime,
+                  amount: provider.selectedAmount,
+                  expiration: provider.selectedExpiration,
+                ),
+              );
+              provider.addMedMarkSave(true);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Medication saved successfully!")),
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MainPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+            child: const Text(
+              "Confirm",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfirmationItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label: ",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(value.isNotEmpty ? value : "Not set"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -146,12 +226,6 @@ class _HomePageState extends State<OtherOptionsPage> {
                   ),
                   onPressed: () {
                     saveMedicationData();
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const ExpirationPage(),
-                    //   ),
-                    // );
                   },
                   child: const Text(
                     "Save",

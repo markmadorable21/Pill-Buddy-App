@@ -1,8 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pill_buddy/pages/add_medication_pages/add_med_name_page.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final addedMed = Provider.of<MedicationProvider>(context).addedMed;
 
     return Scaffold(
       body: CustomScrollView(
@@ -57,7 +58,9 @@ class _HomePageState extends State<HomePage> {
 
           SliverFillRemaining(
             hasScrollBody: false,
-            child: _buildAddMedicationButton(), // Medication section
+            child:
+                addedMed ? _buildMedicationList() : _buildAddMedicationButton(),
+            // Medication section
           ),
         ],
       ),
@@ -185,17 +188,17 @@ class _HomePageState extends State<HomePage> {
             textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 100),
+        const Spacer(),
         SizedBox(
           width: 350,
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddMedNamePage()),
+                MaterialPageRoute(
+                  builder: (context) => const AddMedNamePage(),
+                ),
               );
-              log("Home Add Medication Button Tapped");
-              // Add Medication action
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -211,8 +214,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+        const SizedBox(height: 30),
       ],
     );
+  }
+
+  Widget _buildMedicationList() {
+    return Text("Yua");
   }
 
   /// Returns the **start of the week (Sunday)** based on week offset

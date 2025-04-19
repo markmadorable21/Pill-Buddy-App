@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
 
+class MedicationEntry {
+  final String med;
+  final String form;
+  final String purpose;
+  final String frequency;
+  final String time;
+  final String amount;
+  final String expiration;
+
+  MedicationEntry({
+    required this.med,
+    required this.form,
+    required this.purpose,
+    required this.frequency,
+    required this.time,
+    required this.amount,
+    required this.expiration,
+  });
+}
+
 class MedicationProvider with ChangeNotifier {
+  // Temporary selected values
   String _selectedMed = '';
   String _selectedForm = '';
   String _selectedPurpose = '';
@@ -8,6 +29,11 @@ class MedicationProvider with ChangeNotifier {
   String _selectedTime = '';
   String _selectedAmount = '';
   String _selectedExpiration = '';
+
+  bool addedMed = false;
+
+  // Medication list
+  final List<MedicationEntry> _medList = [];
 
   // Getters
   String get selectedMed => _selectedMed;
@@ -17,6 +43,7 @@ class MedicationProvider with ChangeNotifier {
   String get selectedTime => _selectedTime;
   String get selectedAmount => _selectedAmount;
   String get selectedExpiration => _selectedExpiration;
+  List<MedicationEntry> get medList => _medList;
 
   // Setters
   void selectMedication(String med) {
@@ -51,6 +78,33 @@ class MedicationProvider with ChangeNotifier {
 
   void selectExpiration(String expirationDate) {
     _selectedExpiration = expirationDate;
+    notifyListeners();
+  }
+
+  void addMedMarkSave(bool value) {
+    addedMed = value;
+    notifyListeners();
+  }
+
+  void addMedicationEntry(MedicationEntry entry) {
+    _medList.add(entry);
+    addedMed = true;
+    notifyListeners();
+  }
+
+  void clearSelectedValues() {
+    _selectedMed = '';
+    _selectedForm = '';
+    _selectedPurpose = '';
+    _selectedFrequency = '';
+    _selectedTime = '';
+    _selectedAmount = '';
+    _selectedExpiration = '';
+    notifyListeners();
+  }
+
+  void removeMedicationEntry(MedicationEntry entry) {
+    _medList.remove(entry);
     notifyListeners();
   }
 
