@@ -25,6 +25,50 @@ class _HomePageState extends State<HomePage> {
     selectedDate = today;
     todayPageIndex = totalWeeks ~/ 2;
     _pageController = PageController(initialPage: todayPageIndex);
+
+    // ADD THIS — preload mock data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<MedicationProvider>(context, listen: false);
+
+      // Only add if empty (to avoid duplicates during hot reloads)
+      if (provider.medList.isEmpty) {
+        provider.addMedicationEntry(
+          MedicationEntry(
+            med: 'Paracetamol',
+            form: 'Pill',
+            purpose: 'Headache',
+            frequency: 'Once a day',
+            time: '8:00 AM',
+            amount: '1',
+            expiration: '2025-12-31',
+          ),
+        );
+
+        provider.addMedicationEntry(
+          MedicationEntry(
+            med: 'Cough Syrup',
+            form: 'Solution (Liquid)',
+            purpose: 'Cough',
+            frequency: 'Twice a day',
+            time: '2:00 PM',
+            amount: '10',
+            expiration: '2025-11-15',
+          ),
+        );
+
+        provider.addMedicationEntry(
+          MedicationEntry(
+            med: 'Antibiotic',
+            form: 'Pill',
+            purpose: 'Infection',
+            frequency: '3 times a day',
+            time: '6:00 PM',
+            amount: '1',
+            expiration: '2025-10-20',
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -56,11 +100,14 @@ class _HomePageState extends State<HomePage> {
             ),
           ), // Navigation buttons
 
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child:
-                addedMed ? _buildMedicationList() : _buildAddMedicationButton(),
-            // Medication section
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height -
+                  300, // Adjust height as needed
+              child: addedMed
+                  ? _buildMedicationList()
+                  : _buildAddMedicationButton(),
+            ),
           ),
         ],
       ),
@@ -220,7 +267,39 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMedicationList() {
-    return Text("Yua");
+    final medList = Provider.of<MedicationProvider>(context).medList;
+
+    // Sort entries by time
+    medList.sort((a, b) {
+      final timeA = toMinutes(_parseTimeOfDay(a.time));
+      final timeB = toMinutes(_parseTimeOfDay(b.time));
+      return timeA.compareTo(timeB);
+    });
+
+    return ListView.builder(
+      itemCount: medList.length,
+      itemBuilder: (context, index) {
+        final med = medList[index];
+        return ListTile(
+          leading: const Icon(Icons.medication),
+          title: Text(med.med),
+          subtitle: Text('${med.amount} at ${med.time} • ${med.purpose}'),
+        );
+      },
+    );
+  }
+
+  int toMinutes(TimeOfDay time) => time.hour * 60 + time.minute;
+
+  TimeOfDay _parseTimeOfDay(String timeStr) {
+    try {
+      final format = DateFormat.jm(); // like "6:00 AM"
+      final dateTime = format.parse(timeStr);
+      return TimeOfDay.fromDateTime(dateTime);
+    } catch (e) {
+      // Default to 12:00 AM if parsing fails
+      return const TimeOfDay(hour: 0, minute: 0);
+    }
   }
 
   /// Returns the **start of the week (Sunday)** based on week offset

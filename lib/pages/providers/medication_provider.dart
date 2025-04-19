@@ -30,10 +30,11 @@ class MedicationProvider with ChangeNotifier {
   String _selectedAmount = '';
   String _selectedExpiration = '';
 
-  bool addedMed = false;
+  bool _addedMed = true;
+  bool get addedMed => _addedMed;
 
   // Medication list
-  final List<MedicationEntry> _medList = [];
+  List<MedicationEntry> _medList = [];
 
   // Getters
   String get selectedMed => _selectedMed;
@@ -82,13 +83,13 @@ class MedicationProvider with ChangeNotifier {
   }
 
   void addMedMarkSave(bool value) {
-    addedMed = value;
+    _addedMed = value;
     notifyListeners();
   }
 
   void addMedicationEntry(MedicationEntry entry) {
     _medList.add(entry);
-    addedMed = true;
+    _addedMed = true;
     notifyListeners();
   }
 
