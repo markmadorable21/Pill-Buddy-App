@@ -1,10 +1,59 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz_loc;
+import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/login_register_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
-//import 'package:pill_buddy/pages/providers/purpose_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-void main() {
+final FlutterLocalNotificationsPlugin notificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // time zones (only if you plan to schedule)
+  tz.initializeTimeZones();
+  tz_loc.setLocalLocation(tz_loc.getLocation('Asia/Manila'));
+
+  // ➊ Android init (must match res/drawable/ic_notification.png)
+  const androidInit = AndroidInitializationSettings('ic_notification');
+  const iosInit = DarwinInitializationSettings();
+  const settings = InitializationSettings(
+    android: androidInit,
+    iOS: iosInit,
+  );
+
+  // ➋ Initialize the plugin
+  await notificationsPlugin.initialize(settings,
+      onDidReceiveNotificationResponse: (response) {
+    // handle taps here
+  });
+
+// Only on Android 13+
+  if (Platform.isAndroid) {
+    final status = await Permission.notification.status;
+    if (status.isDenied) {
+      await Permission.notification.request();
+    }
+  }
+
+  // ➍ Create your notification channel (once)
+  await notificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'med_channel',
+          'Medication Reminders',
+          description: 'Daily pill alarms',
+          importance: Importance.max,
+        ),
+      );
+
   runApp(
     MultiProvider(
       providers: [

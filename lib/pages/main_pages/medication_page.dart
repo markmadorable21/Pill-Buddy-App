@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pill_buddy/test_notification_button.dart';
 
 class MedicationPage extends StatefulWidget {
   const MedicationPage({super.key});
@@ -45,7 +46,12 @@ class _MedicationPageState extends State<MedicationPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Add Medication action
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TestNotificationButton(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
