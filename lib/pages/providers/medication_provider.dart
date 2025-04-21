@@ -30,7 +30,7 @@ class MedicationProvider with ChangeNotifier {
   String _selectedAmount = '';
   String _selectedExpiration = '';
 
-  bool _addedMed = true;
+  bool _addedMed = false;
   bool get addedMed => _addedMed;
 
   // Medication list

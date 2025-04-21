@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
             form: 'Solution (Liquid)',
             purpose: 'Cough',
             frequency: 'Twice a day',
-            time: '2:00 PM',
+            time: '8:00 AM',
             amount: '10',
             expiration: '2025-11-15',
           ),
@@ -77,41 +77,60 @@ class _HomePageState extends State<HomePage> {
     final addedMed = Provider.of<MedicationProvider>(context).addedMed;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Container(
-              color: Colors.grey[200], // Background color
+        body: Column(
+          children: [
+            // Fixed header widgets
+            Container(
+              color: Colors.grey[200],
               child: _buildDaysOfWeekRow(),
             ),
-          ), // Days of the week
-
-          SliverToBoxAdapter(
-            child: Container(
-              color: Colors.grey[200], // Background color
+            Container(
+              color: Colors.grey[200],
               child: _buildDateSelector(primaryColor),
             ),
-          ), // Date selector
-
-          SliverToBoxAdapter(
-            child: Container(
-              color: Colors.grey[200], // Background color
+            Container(
+              color: Colors.grey[200],
               child: _buildDateNavigationButtons(primaryColor),
             ),
-          ), // Navigation buttons
 
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height -
-                  300, // Adjust height as needed
+            // 2) Scrollable medication list
+            Expanded(
               child: addedMed
-                  ? _buildMedicationList()
-                  : _buildAddMedicationButton(),
+                  ? _buildMedicationList() // your ListView.builder wrapped in Expanded
+                  : _buildAddMedicationButton(), // if no meds yet
+            ),
+          ],
+        ), // this widget sits _below_ the body, fixed in place
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+            child: SizedBox(
+              width: 350,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddMedNamePage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                child: const Text(
+                  "Add Medication",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
             ),
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   Widget _buildDaysOfWeekRow() {
@@ -235,71 +254,173 @@ class _HomePageState extends State<HomePage> {
             textAlign: TextAlign.center,
           ),
         ),
-        const Spacer(),
-        SizedBox(
-          width: 350,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddMedNamePage(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              textStyle: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            child: const Text(
-              "Add Medication",
-              style: TextStyle(fontSize: 18, color: Colors.white),
-            ),
-          ),
-        ),
-        const SizedBox(height: 30),
       ],
     );
   }
 
+// Parse a "h:mm a" string into a TimeOfDay
+  /// Extracts only the “08:10 AM” part from “08:10 AM at 6”
+  String _timePrefix(String full) {
+    // Split the string by " at " and return the first part
+    final parts = full.split(' at ');
+    return parts.isNotEmpty ? parts.first.trim() : full.trim();
+  }
+
+  /// Parses “08:10 AM” into a TimeOfDay
+  TimeOfDay _parseTimeOfDay(String full) {
+    try {
+      final prefix = _timePrefix(full); // Extract the time portion
+      final dt = DateFormat.jm().parse(prefix); // Parse the time
+      return TimeOfDay.fromDateTime(dt);
+    } catch (e) {
+      // Log the error and return a default time (e.g., 12:00 AM)
+      print('Error parsing time: $full. Returning default time. Error: $e');
+      return const TimeOfDay(hour: 0, minute: 0);
+    }
+  }
+
+  /// Converts a TimeOfDay into minutes since midnight
+  int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
+  // Pick an icon based on the medication form
+  IconData _iconForForm(String form) {
+    switch (form) {
+      case 'Pill':
+        return Icons.tablet;
+      case 'Injection':
+        return Icons.healing;
+      case 'Solution (Liquid)':
+        return Icons.local_drink;
+      case 'Drops':
+        return Icons.opacity;
+      case 'Inhaler':
+        return Icons.air;
+      case 'Powder':
+        return Icons.grain;
+      default:
+        return Icons.medical_services;
+    }
+  }
+
+  // Pick a unit string based on the medication form
+  String _unitForForm(String form) {
+    switch (form) {
+      case 'Pill':
+        return 'pill(s)';
+      case 'Injection':
+      case 'Solution (Liquid)':
+        return 'mL';
+      case 'Drops':
+        return 'drop(s)';
+      case 'Inhaler':
+        return 'puff(s)';
+      case 'Powder':
+        return 'g';
+      default:
+        return '';
+    }
+  }
+
+  /// Returns a scrollable, time‑grouped list of meds.
   Widget _buildMedicationList() {
     final medList = Provider.of<MedicationProvider>(context).medList;
 
-    // Sort entries by time
+    // 1) Sort by clock time
     medList.sort((a, b) {
-      final timeA = toMinutes(_parseTimeOfDay(a.time));
-      final timeB = toMinutes(_parseTimeOfDay(b.time));
-      return timeA.compareTo(timeB);
+      final ta = _toMinutes(_parseTimeOfDay(a.time));
+      final tb = _toMinutes(_parseTimeOfDay(b.time));
+      return ta.compareTo(tb);
     });
 
-    return ListView.builder(
-      itemCount: medList.length,
-      itemBuilder: (context, index) {
-        final med = medList[index];
-        return ListTile(
-          leading: const Icon(Icons.medication),
-          title: Text(med.med),
-          subtitle: Text('${med.amount} at ${med.time} • ${med.purpose}'),
-        );
-      },
-    );
-  }
-
-  int toMinutes(TimeOfDay time) => time.hour * 60 + time.minute;
-
-  TimeOfDay _parseTimeOfDay(String timeStr) {
-    try {
-      final format = DateFormat.jm(); // like "6:00 AM"
-      final dateTime = format.parse(timeStr);
-      return TimeOfDay.fromDateTime(dateTime);
-    } catch (e) {
-      // Default to 12:00 AM if parsing fails
-      return const TimeOfDay(hour: 0, minute: 0);
+    // 2) Group into a Map<String time, List<MedicationEntry>>
+    final Map<String, List<MedicationEntry>> grouped = {};
+    for (final med in medList) {
+      final timeKey = _timePrefix(med.time); // e.g. "08:10 AM"
+      grouped.putIfAbsent(timeKey, () => []).add(med);
     }
+
+    // 3) Build a single ListView with sections
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 100), // room for bottom button
+      children: grouped.entries.map((entry) {
+        final timeHeader = entry.key;
+        final meds = entry.value;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Text(
+                timeHeader,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            // One card per med in this time slot
+            ...meds.map((med) {
+              final icon = _iconForForm(med.form);
+              final unit = _unitForForm(med.form);
+
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  child: Row(
+                    children: [
+                      // icon
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.blue, // or pick color per form
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(icon, size: 20, color: Colors.white),
+                      ),
+                      const SizedBox(width: 12),
+                      // divider
+                      Container(width: 1, height: 40, color: Colors.black),
+                      const SizedBox(width: 12),
+                      // text
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(med.med,
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black)),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${med.amount} $unit, Take 1 pill(s)',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black.withOpacity(0.75)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
+        );
+      }).toList(),
+    );
   }
 
   /// Returns the **start of the week (Sunday)** based on week offset
