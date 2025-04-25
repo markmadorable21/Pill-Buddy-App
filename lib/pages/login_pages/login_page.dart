@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/forgot_password_pages/forgot_password_page.dart';
 import 'package:pill_buddy/pages/login_pages/google_signin_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,9 +14,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<MedicationProvider>(context);
     return Scaffold(
       body: Center(
         child: Padding(
@@ -37,6 +50,7 @@ class _LoginPageState extends State<LoginPage> {
 
               // Email TextField
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: "Enter your email",
                   filled: true,
@@ -47,12 +61,16 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   prefixIcon: const Icon(Icons.email),
                 ),
+                onChanged: (email) {
+                  auth.inputEmail(email);
+                },
               ),
               const SizedBox(height: 15),
 
               // Password TextField with Eye Icon
               TextField(
                 obscureText: _obscurePassword,
+                controller: _passwordController,
                 decoration: InputDecoration(
                   hintText: "Enter your password",
                   filled: true,
@@ -75,6 +93,9 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                 ),
+                onChanged: (password) {
+                  auth.inputPassword(password);
+                },
               ),
               const SizedBox(height: 10),
 
@@ -103,6 +124,10 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
+                    final email = auth.inputtedEmail;
+                    final pass = auth.inputtedPassword;
+                    print(
+                        'password and email has successfully inputted\nemail: $email\npassword: $pass');
                     // Add Login action
                     Navigator.push(
                       context,

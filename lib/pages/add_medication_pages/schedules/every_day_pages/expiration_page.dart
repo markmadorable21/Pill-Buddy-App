@@ -86,8 +86,8 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                     onPressed: () {
                       provider.selectExpiration(
                         _selectedDate != null
-                            ? DateFormat('MMM d yyyy').format(_selectedDate!)
-                            : DateFormat('MMM d yyyy').format(DateTime.now()),
+                            ? DateFormat('MMM d, yyyy').format(_selectedDate!)
+                            : DateFormat('MMM d, yyyy').format(DateTime.now()),
                       );
 
                       _pickDate(context);

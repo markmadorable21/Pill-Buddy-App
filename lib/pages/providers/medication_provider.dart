@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MedicationEntry {
   final String med;
@@ -29,14 +30,26 @@ class MedicationProvider with ChangeNotifier {
   String _selectedTime = '';
   String _selectedAmount = '';
   String _selectedExpiration = '';
-
   bool _addedMed = false;
   bool get addedMed => _addedMed;
+
+  //login
+  String _inputtedEmail = '';
+  String _inputtedPassword = '';
+
+  //signup or regidter
+  String _inputtedFirstName = '';
+  String _inputtedLastName = '';
+  String _inputtedIdentity = '';
+  DateTime? _birthDate;
+  DateTime? get birthDate => _birthDate;
 
   // Medication list
   List<MedicationEntry> _medList = [];
 
   // Getters
+  String get inputtedEmail => _inputtedEmail;
+  String get inputtedPassword => _inputtedPassword;
   String get selectedMed => _selectedMed;
   String get selectedForm => _selectedForm;
   String get selectedPurpose => _selectedPurpose;
@@ -47,6 +60,26 @@ class MedicationProvider with ChangeNotifier {
   List<MedicationEntry> get medList => _medList;
 
   // Setters
+  void setBirthDate(DateTime date) {
+    _birthDate = date;
+    notifyListeners();
+  }
+
+  String get birthDateFormatted {
+    if (_birthDate == null) return '';
+    return DateFormat('MMM d, yyyy').format(_birthDate!);
+  }
+
+  void inputEmail(String email) {
+    _inputtedEmail = email;
+    notifyListeners();
+  }
+
+  void inputPassword(String password) {
+    _inputtedPassword = password;
+    notifyListeners();
+  }
+
   void selectMedication(String med) {
     _selectedMed = med;
     notifyListeners();

@@ -2,24 +2,29 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:pill_buddy/firebase_options.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_loc;
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/login_register_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // time zones (only if you plan to schedule)
   tz.initializeTimeZones();
   tz_loc.setLocalLocation(tz_loc.getLocation('Asia/Manila'));
 
-  // ➊ Android init (must match res/drawable/ic_notification.png)
+  //  Android init (must match res/drawable/ic_notification.png)
   const androidInit = AndroidInitializationSettings('ic_notification');
   const iosInit = DarwinInitializationSettings();
   const settings = InitializationSettings(
@@ -27,7 +32,7 @@ Future<void> main() async {
     iOS: iosInit,
   );
 
-  // ➋ Initialize the plugin
+  //  Initialize the plugin
   await notificationsPlugin.initialize(settings,
       onDidReceiveNotificationResponse: (response) {
     // handle taps here
@@ -41,7 +46,7 @@ Future<void> main() async {
     }
   }
 
-  // ➍ Create your notification channel (once)
+  // Create your notification channel (once)
   await notificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()

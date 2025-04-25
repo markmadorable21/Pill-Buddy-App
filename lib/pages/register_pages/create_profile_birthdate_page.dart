@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/create_profile_hope_to_achieve_page.dart';
 
 class CreateProfileBirthdatePage extends StatefulWidget {
@@ -12,28 +13,25 @@ class CreateProfileBirthdatePage extends StatefulWidget {
 
 class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
     with SingleTickerProviderStateMixin {
-  DateTime? _selectedDate;
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+
   final DateTime _minAgeDate =
       DateTime.now().subtract(const Duration(days: 18 * 365));
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Animation controller for fade-in effect
+    // set up the fade‐in animation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     );
-
-    _controller.forward(); // Start animation
+    _controller.forward();
   }
 
   @override
@@ -42,8 +40,9 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
     super.dispose();
   }
 
-  void _pickDate() async {
-    DateTime? pickedDate = await showDatePicker(
+  Future<void> _pickDate() async {
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: _minAgeDate,
       firstDate: DateTime(1900),
@@ -52,28 +51,32 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.fromSeed(
-                seedColor: Theme.of(context).colorScheme.primary),
+              seedColor: Theme.of(context).colorScheme.primary,
+            ),
           ),
           child: child!,
         );
       },
     );
-
     if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
+      provider.setBirthDate(pickedDate);
+      // replay the fade if you want to highlight the change
+      _controller.forward(from: 0);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationProvider>(context);
+    final hasDate = provider.birthDate != null;
+    final displayText =
+        hasDate ? provider.birthDateFormatted : "Select your birthdate";
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(elevation: 0, backgroundColor: Colors.transparent),
       body: FadeTransition(
-        opacity: _fadeAnimation, // Page fade-in effect
+        opacity: _fadeAnimation,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
@@ -81,11 +84,15 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
             children: [
               const Spacer(),
 
-              // Icon with fade-in animation
+              // Icon
               AnimatedOpacity(
                 opacity: 1.0,
                 duration: const Duration(milliseconds: 500),
-                child: Icon(Icons.cake, size: 80, color: primaryColor),
+                child: Icon(
+                  Icons.cake,
+                  size: 80,
+                  color: primaryColor,
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -99,7 +106,7 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
 
               const SizedBox(height: 10),
 
-              // Small Body Text
+              // Subtitle
               const Text(
                 "You must be at least 18 years old to use PillBuddy",
                 textAlign: TextAlign.center,
@@ -108,7 +115,7 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
 
               const SizedBox(height: 30),
 
-              // Date Picker Button with animation
+              // Date picker field
               GestureDetector(
                 onTap: _pickDate,
                 child: AnimatedContainer(
@@ -116,9 +123,10 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                   padding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(
+                        color: hasDate ? Colors.transparent : Colors.grey),
                     borderRadius: BorderRadius.circular(10),
-                    color: _selectedDate != null
+                    color: hasDate
                         ? primaryColor.withOpacity(0.1)
                         : Colors.transparent,
                   ),
@@ -126,14 +134,10 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _selectedDate != null
-                            ? DateFormat.yMMMMd().format(_selectedDate!)
-                            : "Select your birthdate",
+                        displayText,
                         style: TextStyle(
                           fontSize: 16,
-                          color: _selectedDate != null
-                              ? Colors.black
-                              : Colors.grey,
+                          color: hasDate ? Colors.black : Colors.grey,
                         ),
                       ),
                       Icon(Icons.calendar_today, color: primaryColor),
@@ -144,28 +148,30 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
 
               const Spacer(),
 
-              // Next Button with fade-in effect when a date is selected
+              // Next button
               AnimatedOpacity(
-                opacity: _selectedDate != null ? 1.0 : 0.5,
+                opacity: hasDate ? 1.0 : 0.5,
                 duration: const Duration(milliseconds: 300),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: hasDate ? primaryColor : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor:
-                          _selectedDate != null ? primaryColor : Colors.grey,
                     ),
-                    onPressed: _selectedDate != null
+                    onPressed: hasDate
                         ? () {
+                            final bday = provider.birthDateFormatted;
+                            print('Date: $bday');
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CreateProfileHopeToAchievePage()),
+                                builder: (_) =>
+                                    const CreateProfileHopeToAchievePage(),
+                              ),
                             );
                           }
                         : null,
