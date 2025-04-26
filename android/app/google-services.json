@@ -29,6 +29,13 @@
             {
               "client_id": "315654084941-2kvmvqdmtmfa2dgm2g4rrq4lv3gqj60i.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "315654084941-e7p052adc6uc6hlii5ob6mtmv150qide.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pillBuddy"
+              }
             }
           ]
         }

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
@@ -51,8 +53,10 @@ class _CreateProfileConfirmEmailPageState
     super.dispose();
   }
 
+//TODO : uncomment the email and password validation functions
   bool _isValidEmail(String email) {
-    return RegExp(r"^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email);
+    return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        .hasMatch(email);
   }
 
   bool _isValidPassword(String password) {
@@ -62,9 +66,12 @@ class _CreateProfileConfirmEmailPageState
         RegExp(r'[0-9]').hasMatch(password);
   }
 
-  Future<void> _validateAndProceed() async {
+  void _validateAndProceed() {
     if (!_formKey.currentState!.validate()) return;
+    _firebaseSentEmailPass();
+  }
 
+  Future<void> _firebaseSentEmailPass() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -86,16 +93,7 @@ class _CreateProfileConfirmEmailPageState
           .inputEmail(email); // or use a dedicated AuthProvider
 
       Navigator.of(context).pop(); // remove the loading dialog
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const MainPage(),
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Verification email sent")),
-      );
-      print('Success: User created and verification email sent');
+      _showVerifyEmailDialog();
     } on FirebaseAuthException catch (e) {
       Navigator.of(context).pop(); // remove loading
       String message = "An error occurred";
@@ -106,11 +104,104 @@ class _CreateProfileConfirmEmailPageState
       } else if (e.code == 'invalid-email') {
         message = "Invalid email address.";
       }
-      print('error: $e.code');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
     }
+  }
+
+  Future<void> _showVerifyEmailDialog() async {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.email, size: 80, color: primaryColor),
+              const SizedBox(height: 24),
+              const Text(
+                'Verify your email address',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'We have just sent an email verification link to your email. '
+                'Please check your email and click that link to verify your email address.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'If not auto-redirected after verification, click the Continue button.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    //                // ① clear banner:
+                    // ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+
+                    // // ② show modal dialog:
+                    // showDialog<void>(
+                    //   context: context,
+                    //   barrierDismissible: false,
+                    //   builder: (ctx) => AlertDialog(
+                    //     title: const Text('Error', style: TextStyle(color: Colors.red)),
+                    //     content: Text(message),
+                    //     actions: [
+                    //       TextButton(
+                    //         onPressed: () => Navigator.of(ctx).pop(),
+                    //         child: const Text('OK'),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // );
+                    // Navigator.pushReplacement(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (_) => const MainPage(),
+                    //   ),
+                    // );
+                  },
+                  child: const Text('Continue',
+                      style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  // TODO: call sendEmailVerification again
+                },
+                child: const Text('Resend E-mail Link'),
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.arrow_back, size: 18),
+                label: const Text('Back'),
+                onPressed: () {
+                  Navigator.of(ctx).pop(); // close dialog
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -123,16 +214,6 @@ class _CreateProfileConfirmEmailPageState
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const CreateProfileHopeToAchievePage()),
-            ),
-            child: const Text("Skip", style: TextStyle(color: Colors.black)),
-          ),
-        ],
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -183,7 +264,9 @@ class _CreateProfileConfirmEmailPageState
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Email is required";
-                    } else if (!_isValidEmail(value.trim())) {
+                    }
+                    //TODO: uncomment the email validation function
+                    else if (!_isValidEmail(value.trim())) {
                       return "Enter a valid email";
                     }
                     return null;
@@ -213,7 +296,9 @@ class _CreateProfileConfirmEmailPageState
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Password is required";
-                    } else if (!_isValidPassword(value)) {
+                    }
+                    //TODO : uncomment the password validation function
+                    else if (!_isValidPassword(value)) {
                       return "Invalid password format";
                     }
                     return null;
@@ -265,7 +350,14 @@ class _CreateProfileConfirmEmailPageState
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _validateAndProceed,
+                    onPressed: () {
+                      // ① hide any banner
+                      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+
+                      _validateAndProceed();
+                      // _showVerifyEmailDialog();
+                      // _firebaseSentEmailPass();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
