@@ -184,23 +184,19 @@ class _CreateProfileConfirmEmailPageState
                     ),
                   ),
                   onPressed: () async {
-                    final verified = await checkEmailVerified();
+                    bool verified = await checkEmailVerified();
                     if (verified) {
                       logger.i("Email verified.");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Email verified! 🎉')),
-                      );
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const MainPage(),
-                        ),
-                      );
+                      showFrontToastSuccess(context, 'Email verified! 🎉');
+
+                      // Navigator.of(context).pushReplacement(
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const MainPage(),
+                      //   ),
+                      // );
                     } else {
                       logger.i("Email not verified yet.");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Email not verified yet.')),
-                      );
+                      showFrontToastError(context, 'Email not verified yet.');
                     }
                   },
                   child: const Text('Continue',
@@ -210,28 +206,38 @@ class _CreateProfileConfirmEmailPageState
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () async {
+                  // 1) Make sure there’s a signed-in user
                   final user = FirebaseAuth.instance.currentUser;
-                  if (user != null) {
-                    try {
-                      await user.sendEmailVerification();
-                      logger.i("Verification email resent.");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Verification email resent.')),
-                      );
-                    } catch (e) {
-                      logger.e("Failed to resend verification email: $e");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Failed to resend email.')),
-                      );
-                    }
-                  } else {
+
+                  if (user == null) {
                     logger.e("No user is currently signed in.");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('No user is currently signed in.')),
-                    );
+                    showFrontToastError(
+                        context, 'No user is currently signed in.');
+                    return;
+                  }
+
+                  // 2) Refresh from server, then check
+                  await user.reload();
+                  if (user.emailVerified) {
+                    logger.i("Email already verified.");
+                    showFrontToastSuccess(
+                        context, 'Email already verified! 🎉');
+                    return; // ← stop here, no resend
+                  }
+
+                  // 3) Not verified → try to resend
+                  try {
+                    await user.sendEmailVerification();
+                    showFrontToastSuccess(
+                        context, 'Verification email resent.');
+                  } on FirebaseAuthException catch (e) {
+                    if (e.code == 'too-many-requests') {
+                      showFrontToastError(
+                          context, 'Please wait a bit before trying again.');
+                    } else {
+                      showFrontToastError(context,
+                          'Error resending verification email: ${e.message}');
+                    }
                   }
                 },
                 child: const Text('Resend E-mail Link'),
@@ -250,16 +256,40 @@ class _CreateProfileConfirmEmailPageState
     );
   }
 
-  void showFrontToast(BuildContext context, String text) {
-    final overlay = Overlay.of(context);
+  void showFrontToastSuccess(BuildContext context, String text) {
+    _showFrontToast(
+      context,
+      text,
+      backgroundColor: Colors.green.shade600,
+      icon: Icons.check_circle,
+    );
+  }
 
+  void showFrontToastError(BuildContext context, String text) {
+    _showFrontToast(
+      context,
+      text,
+      backgroundColor: Colors.red.shade600,
+      icon: Icons.error,
+    );
+  }
+
+  void _showFrontToast(
+    BuildContext context,
+    String text, {
+    required Color backgroundColor,
+    required IconData icon,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final overlay = Overlay.of(context);
     final entry = OverlayEntry(builder: (ctx) {
-      final pad = MediaQuery.of(ctx).viewInsets.bottom + 16;
+      final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
       return Positioned(
-        bottom: pad,
+        bottom: bottomInset + 16,
         left: 16,
         right: 16,
         child: Material(
+          color: backgroundColor,
           elevation: 6,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
@@ -267,14 +297,26 @@ class _CreateProfileConfirmEmailPageState
               horizontal: 16,
               vertical: 12,
             ),
-            child: Text(text),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    text,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
     });
 
     overlay.insert(entry);
-    Future.delayed(const Duration(seconds: 3), () => entry.remove());
+    Future.delayed(duration, () => entry.remove());
   }
 
   @override
@@ -318,7 +360,7 @@ class _CreateProfileConfirmEmailPageState
 
                 // Subtitle
                 const Text(
-                  "A confirmation code will be sent to your email",
+                  "A confirmation message will be sent to your email",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
