@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pill_buddy/firebase_options.dart';
 import 'package:pill_buddy/pages/register_pages/create_profile_confirm_email.dart';
+import 'package:pill_buddy/pages/register_pages/create_profile_confirm_email.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_loc;
 import 'package:provider/provider.dart';

@@ -1,7 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -22,6 +24,7 @@ class _CreateProfileConfirmEmailPageState
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  var logger = Logger();
 
   final _auth = FirebaseAuth.instance;
 
@@ -47,6 +50,7 @@ class _CreateProfileConfirmEmailPageState
   @override
   void dispose() {
     _controller.dispose();
+
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -87,13 +91,28 @@ class _CreateProfileConfirmEmailPageState
         email: email,
         password: password,
       );
-      await userCredential.user?.sendEmailVerification();
+      logger.i("User created successfully.");
+
+      final newUser = userCredential.user;
+      if (newUser == null) {
+        throw FirebaseAuthException(
+          code: 'user-null',
+          message: 'User object is null after registration.',
+        );
+      }
+
+      // Send email verification
+      await newUser.sendEmailVerification();
+      logger.i("Verification email sent successfully.");
+
       // Optionally: store email/password in your own provider
       Provider.of<MedicationProvider>(context, listen: false)
           .inputEmail(email); // or use a dedicated AuthProvider
+      logger.i("Provider called");
 
       Navigator.of(context).pop(); // remove the loading dialog
       _showVerifyEmailDialog();
+      logger.i("_showVerifyEmailDialog() called");
     } on FirebaseAuthException catch (e) {
       Navigator.of(context).pop(); // remove loading
       String message = "An error occurred";
@@ -108,6 +127,17 @@ class _CreateProfileConfirmEmailPageState
         SnackBar(content: Text(message)),
       );
     }
+  }
+
+  Future<bool> checkEmailVerified() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      logger.e("No user is currently signed in.");
+      return false;
+    }
+
+    await user.reload(); // Fetch the latest state
+    return user.emailVerified;
   }
 
   Future<void> _showVerifyEmailDialog() async {
@@ -153,31 +183,25 @@ class _CreateProfileConfirmEmailPageState
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    //                // ① clear banner:
-                    // ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-
-                    // // ② show modal dialog:
-                    // showDialog<void>(
-                    //   context: context,
-                    //   barrierDismissible: false,
-                    //   builder: (ctx) => AlertDialog(
-                    //     title: const Text('Error', style: TextStyle(color: Colors.red)),
-                    //     content: Text(message),
-                    //     actions: [
-                    //       TextButton(
-                    //         onPressed: () => Navigator.of(ctx).pop(),
-                    //         child: const Text('OK'),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // );
-                    // Navigator.pushReplacement(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (_) => const MainPage(),
-                    //   ),
-                    // );
+                  onPressed: () async {
+                    final verified = await checkEmailVerified();
+                    if (verified) {
+                      logger.i("Email verified.");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Email verified! 🎉')),
+                      );
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const MainPage(),
+                        ),
+                      );
+                    } else {
+                      logger.i("Email not verified yet.");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Email not verified yet.')),
+                      );
+                    }
                   },
                   child: const Text('Continue',
                       style: TextStyle(fontSize: 16, color: Colors.white)),
@@ -185,8 +209,30 @@ class _CreateProfileConfirmEmailPageState
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () {
-                  // TODO: call sendEmailVerification again
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    try {
+                      await user.sendEmailVerification();
+                      logger.i("Verification email resent.");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Verification email resent.')),
+                      );
+                    } catch (e) {
+                      logger.e("Failed to resend verification email: $e");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Failed to resend email.')),
+                      );
+                    }
+                  } else {
+                    logger.e("No user is currently signed in.");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('No user is currently signed in.')),
+                    );
+                  }
                 },
                 child: const Text('Resend E-mail Link'),
               ),
@@ -202,6 +248,33 @@ class _CreateProfileConfirmEmailPageState
         ),
       ),
     );
+  }
+
+  void showFrontToast(BuildContext context, String text) {
+    final overlay = Overlay.of(context);
+
+    final entry = OverlayEntry(builder: (ctx) {
+      final pad = MediaQuery.of(ctx).viewInsets.bottom + 16;
+      return Positioned(
+        bottom: pad,
+        left: 16,
+        right: 16,
+        child: Material(
+          elevation: 6,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            child: Text(text),
+          ),
+        ),
+      );
+    });
+
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () => entry.remove());
   }
 
   @override
@@ -309,7 +382,7 @@ class _CreateProfileConfirmEmailPageState
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "Password must be at least 6 chars, one uppercase, one lowercase, and one digit",
+                      "Password must be at least: 6 characters long, an uppercase and lowercase letter, and a digit",
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ),
