@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:pill_buddy/pages/register_pages/create_profile_hope_to_achieve_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 
 class CreateProfileBirthdatePage extends StatefulWidget {
   const CreateProfileBirthdatePage({super.key});

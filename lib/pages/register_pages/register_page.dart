@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:pill_buddy/pages/register_pages/create_my_profile_page.dart";
+import "package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart";
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});

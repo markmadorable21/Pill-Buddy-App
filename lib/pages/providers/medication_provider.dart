@@ -40,16 +40,27 @@ class MedicationProvider with ChangeNotifier {
   //signup or regidter
   String _inputtedFirstName = '';
   String _inputtedLastName = '';
-  String _inputtedIdentity = '';
+  String _selectedGender = '';
   DateTime? _birthDate;
-  DateTime? get birthDate => _birthDate;
+
+  // Define a Set to hold selected options
+  Set<String> _selectedOptions = {};
 
   // Medication list
   List<MedicationEntry> _medList = [];
 
-  // Getters
+  // Getters for user details
   String get inputtedEmail => _inputtedEmail;
   String get inputtedPassword => _inputtedPassword;
+  String get inputtedFirstName => _inputtedFirstName;
+  String get inputtedLastName => _inputtedLastName;
+  String get selectedGender => _selectedGender;
+  DateTime? get birthDate => _birthDate;
+
+  // Getter for selectedOptions
+  Set<String> get selectedOptions => _selectedOptions;
+
+  // Getters for med details
   String get selectedMed => _selectedMed;
   String get selectedForm => _selectedForm;
   String get selectedPurpose => _selectedPurpose;
@@ -68,6 +79,23 @@ class MedicationProvider with ChangeNotifier {
   String get birthDateFormatted {
     if (_birthDate == null) return '';
     return DateFormat('MMM d, yyyy').format(_birthDate!);
+  }
+
+  // Setter to update selectedOptions
+  void toggleOption(String option) {
+    if (_selectedOptions.contains(option)) {
+      _selectedOptions.remove(option);
+    } else {
+      _selectedOptions.add(option);
+    }
+    // Notify listeners to rebuild the widget when the data changes
+    notifyListeners();
+  }
+
+  // Clear all selected options
+  void clearOptions() {
+    _selectedOptions.clear();
+    notifyListeners();
   }
 
   void inputEmail(String email) {

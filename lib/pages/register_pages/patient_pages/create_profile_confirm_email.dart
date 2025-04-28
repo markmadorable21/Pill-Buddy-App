@@ -7,7 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:pill_buddy/pages/register_pages/create_profile_hope_to_achieve_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 
 class CreateProfileConfirmEmailPage extends StatefulWidget {
   const CreateProfileConfirmEmailPage({super.key});
@@ -184,7 +184,7 @@ class _CreateProfileConfirmEmailPageState
                     ),
                   ),
                   onPressed: () async {
-                    bool verified = await checkEmailVerified();
+                    final verified = await checkEmailVerified();
                     if (verified) {
                       logger.i("Email verified.");
                       showFrontToastSuccess(context, 'Email verified! 🎉');

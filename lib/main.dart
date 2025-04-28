@@ -2,8 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pill_buddy/firebase_options.dart';
-import 'package:pill_buddy/pages/register_pages/create_profile_confirm_email.dart';
-import 'package:pill_buddy/pages/register_pages/create_profile_confirm_email.dart';
+import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
+import 'package:pill_buddy/pages/register_pages/register_page.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_loc;
 import 'package:provider/provider.dart';
@@ -113,7 +117,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CreateProfileConfirmEmailPage(),
+      home: const CreateProfileHopeToAchievePage(),
     );
   }
 }

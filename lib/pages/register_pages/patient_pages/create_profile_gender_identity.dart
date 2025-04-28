@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:pill_buddy/pages/register_pages/create_profile_birthdate_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
 
 class CreateProfileIdentityPage extends StatefulWidget {
   const CreateProfileIdentityPage({super.key});
