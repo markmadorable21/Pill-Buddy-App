@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
+import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -24,6 +25,7 @@ class _CreateProfileConfirmEmailPageState
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isButtonEnabled = false;
   var logger = Logger();
 
   final _auth = FirebaseAuth.instance;
@@ -36,6 +38,11 @@ class _CreateProfileConfirmEmailPageState
   @override
   void initState() {
     super.initState();
+
+    _emailController.addListener(_checkInputs);
+    _passwordController.addListener(_checkInputs);
+
+    _confirmPasswordController.addListener(_checkInputs);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -45,6 +52,14 @@ class _CreateProfileConfirmEmailPageState
       curve: Curves.easeInOut,
     );
     _controller.forward();
+  }
+
+  void _checkInputs() {
+    setState(() {
+      _isButtonEnabled = _emailController.text.isNotEmpty &&
+          _passwordController.text.isNotEmpty &&
+          _confirmPasswordController.text.isNotEmpty;
+    });
   }
 
   @override
@@ -322,6 +337,7 @@ class _CreateProfileConfirmEmailPageState
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -340,8 +356,7 @@ class _CreateProfileConfirmEmailPageState
             key: _formKey,
             child: Column(
               children: [
-                const Spacer(),
-
+                const SizedBox(height: 40),
                 // Animated Email Icon
                 AnimatedOpacity(
                   opacity: 1.0,
@@ -362,7 +377,7 @@ class _CreateProfileConfirmEmailPageState
                 const Text(
                   "A confirmation message will be sent to your email",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 30),
 
@@ -385,6 +400,9 @@ class _CreateProfileConfirmEmailPageState
                       return "Enter a valid email";
                     }
                     return null;
+                  },
+                  onChanged: (value) {
+                    provider.inputEmail(value);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -417,6 +435,9 @@ class _CreateProfileConfirmEmailPageState
                       return "Invalid password format";
                     }
                     return null;
+                  },
+                  onChanged: (value) {
+                    provider.inputPassword(value);
                   },
                 ),
                 const Padding(
@@ -458,6 +479,28 @@ class _CreateProfileConfirmEmailPageState
                     return null;
                   },
                 ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to Register Page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                        );
+                      },
+                      child: const Text(
+                        "Login",
+                        style: TextStyle(
+                            color: Colors.blue, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
 
                 const Spacer(),
 
@@ -468,7 +511,8 @@ class _CreateProfileConfirmEmailPageState
                     onPressed: () {
                       // ① hide any banner
                       ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-
+                      logger.e("Email: ${_emailController.text}");
+                      logger.e("Password: ${_passwordController.text}");
                       _validateAndProceed();
                       // _showVerifyEmailDialog();
                       // _firebaseSentEmailPass();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
@@ -15,6 +16,7 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
+  var logger = Logger();
 
   final DateTime _minAgeDate =
       DateTime.now().subtract(const Duration(days: 18 * 365));
@@ -165,7 +167,7 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                     onPressed: hasDate
                         ? () {
                             final bday = provider.birthDateFormatted;
-                            print('Date: $bday');
+                            logger.e('Date: $bday');
                             Navigator.push(
                               context,
                               MaterialPageRoute(

@@ -98,8 +98,24 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Setter to update selected gender
+  void setSelectedGender(String gender) {
+    _selectedGender = gender;
+    notifyListeners(); // Notify listeners when the gender is updated
+  }
+
   void inputEmail(String email) {
     _inputtedEmail = email;
+    notifyListeners();
+  }
+
+  void inputFirstName(String firstName) {
+    _inputtedFirstName = firstName;
+    notifyListeners();
+  }
+
+  void inputLastName(String lastName) {
+    _inputtedLastName = lastName;
     notifyListeners();
   }
 

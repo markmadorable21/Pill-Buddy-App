@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pill_buddy/firebase_options.dart';
+import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
@@ -117,7 +118,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CreateProfileHopeToAchievePage(),
+      home: const CreateProfileConfirmEmailPage(),
     );
   }
 }

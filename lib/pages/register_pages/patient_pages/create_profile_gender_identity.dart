@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:logger/logger.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
+import 'package:provider/provider.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart'; // Import the provider
 
 class CreateProfileIdentityPage extends StatefulWidget {
   const CreateProfileIdentityPage({super.key});
@@ -29,8 +32,7 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
     "Two-Spirit",
     "Prefer not to say"
   ];
-
-  String? selectedGender; // Track selected gender
+  var logger = Logger();
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +66,7 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            // Title (Static)
+            const SizedBox(height: 20), // Title (Static)
             Center(
               child: FadeIn(
                 delay: const Duration(milliseconds: 200),
@@ -79,15 +79,15 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
               ),
             ),
 
-            const SizedBox(height: 24),
-
-            // Scrollable Gender Options
+            const SizedBox(height: 24), // Scrollable Gender Options
             Expanded(
               child: ListView.builder(
                 itemCount: genderOptions.length,
                 itemBuilder: (context, index) {
                   final gender = genderOptions[index];
-                  final isSelected = selectedGender == gender;
+                  final isSelected =
+                      context.watch<MedicationProvider>().selectedGender ==
+                          gender;
 
                   return SlideInUp(
                     delay: Duration(
@@ -95,9 +95,9 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
                             100 + (index * 50)), // Staggered animations
                     child: GestureDetector(
                       onTap: () {
-                        setState(() {
-                          selectedGender = gender;
-                        });
+                        // Update the selected gender using provider
+                        Provider.of<MedicationProvider>(context, listen: false)
+                            .setSelectedGender(gender);
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -145,13 +145,19 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor:
-                        selectedGender != null ? primaryColor : Colors.grey,
+                    backgroundColor: context
+                            .watch<MedicationProvider>()
+                            .selectedGender
+                            .isNotEmpty
+                        ? primaryColor
+                        : Colors.grey,
                   ),
-                  onPressed: selectedGender != null
+                  onPressed: context
+                          .watch<MedicationProvider>()
+                          .selectedGender
+                          .isNotEmpty
                       ? () {
                           Navigator.push(
                             context,
@@ -159,6 +165,8 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
                                 builder: (context) =>
                                     const CreateProfileBirthdatePage()),
                           );
+                          logger.e(
+                              'Selected Gender: ${Provider.of<MedicationProvider>(context, listen: false).selectedGender}');
                         }
                       : null,
                   child: const Text(

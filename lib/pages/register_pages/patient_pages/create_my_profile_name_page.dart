@@ -1,8 +1,11 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_gender_identity.dart';
 
 class CreateProfileNamePage extends StatefulWidget {
@@ -16,6 +19,7 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   bool _isButtonEnabled = false;
+  var logger = Logger();
 
   @override
   void initState() {
@@ -41,6 +45,7 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -85,6 +90,9 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
               duration: const Duration(milliseconds: 500),
               child: TextField(
                 controller: _firstNameController,
+                onChanged: (value) {
+                  provider.inputFirstName(value);
+                },
                 decoration: InputDecoration(
                   labelText: "First Name",
                   border: OutlineInputBorder(
@@ -101,6 +109,9 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
               duration: const Duration(milliseconds: 500),
               child: TextField(
                 controller: _lastNameController,
+                onChanged: (value) {
+                  provider.inputLastName(value);
+                },
                 decoration: InputDecoration(
                   labelText: "Last Name",
                   border: OutlineInputBorder(
@@ -127,6 +138,8 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
                   ),
                   onPressed: _isButtonEnabled
                       ? () {
+                          logger.e("First Name: ${_firstNameController.text}");
+                          logger.e("Last Name: ${_lastNameController.text}");
                           Navigator.push(
                             context,
                             MaterialPageRoute(
