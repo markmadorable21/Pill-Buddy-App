@@ -40,8 +40,10 @@ class MedicationProvider with ChangeNotifier {
   //signup or regidter
   String _inputtedFirstName = '';
   String _inputtedLastName = '';
+  String _completeName = "";
   String _selectedGender = '';
   DateTime? _birthDate;
+  int _calculatedAge = 0;
 
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
@@ -54,8 +56,10 @@ class MedicationProvider with ChangeNotifier {
   String get inputtedPassword => _inputtedPassword;
   String get inputtedFirstName => _inputtedFirstName;
   String get inputtedLastName => _inputtedLastName;
+  String get completeName => _completeName;
   String get selectedGender => _selectedGender;
   DateTime? get birthDate => _birthDate;
+  int get calculatedAge => _calculatedAge;
 
   // Getter for selectedOptions
   Set<String> get selectedOptions => _selectedOptions;
@@ -104,6 +108,11 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners(); // Notify listeners when the gender is updated
   }
 
+  void setAge(int age) {
+    _calculatedAge = age;
+    notifyListeners();
+  }
+
   void inputEmail(String email) {
     _inputtedEmail = email;
     notifyListeners();
@@ -116,6 +125,11 @@ class MedicationProvider with ChangeNotifier {
 
   void inputLastName(String lastName) {
     _inputtedLastName = lastName;
+    notifyListeners();
+  }
+
+  void setCompleteName(String name) {
+    _completeName = name;
     notifyListeners();
   }
 

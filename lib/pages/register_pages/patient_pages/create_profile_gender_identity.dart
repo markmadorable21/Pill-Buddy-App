@@ -40,6 +40,7 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 70,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         elevation: 0,
         scrolledUnderElevation: 0, // Prevents graying effect when scrolling

@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/select_profile_picture_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
@@ -62,15 +63,15 @@ class _CreateProfileConfirmEmailPageState
     });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
+  // @override
+  // void dispose() {
+  //   _controller.dispose();
 
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
+  //   _emailController.dispose();
+  //   _passwordController.dispose();
+  //   _confirmPasswordController.dispose();
+  //   super.dispose();
+  // }
 
 //TODO : uncomment the email and password validation functions
   bool _isValidEmail(String email) {
@@ -200,8 +201,7 @@ class _CreateProfileConfirmEmailPageState
                   ),
                   onPressed: () async {
                     // Start a Timer that checks every second
-                    Timer.periodic(const Duration(microseconds: 1),
-                        (timer) async {
+                    Timer.periodic(const Duration(seconds: 1), (timer) async {
                       final verified = await checkEmailVerified();
                       if (verified) {
                         // Stop the timer once the email is verified
@@ -211,8 +211,16 @@ class _CreateProfileConfirmEmailPageState
 
                         // Navigator.of(context).pushReplacement(
                         //   MaterialPageRoute(
-                        //     builder: (context) => const MainPage(),
+                        //     builder: (context) => const SelectProfilePicturePage(),
                         //   ),
+                        // );
+
+                        // Navigator.pushAndRemoveUntil(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) => const MainPage()),
+                        //   (Route<dynamic> route) =>
+                        //       false, // This will remove all previous routes
                         // );
                       } else {
                         logger.i("Email not verified yet.");
@@ -347,15 +355,17 @@ class _CreateProfileConfirmEmailPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Account Registration",
-            style: TextStyle(color: Colors.white)),
         toolbarHeight: 70,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        elevation: 0,
+        scrolledUnderElevation: 0, // Prevents graying effect when scrolling
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        elevation: 0,
-        backgroundColor: primaryColor,
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -505,7 +515,7 @@ class _CreateProfileConfirmEmailPageState
                     ],
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 130),
 
                   // Next Button
                   SizedBox(

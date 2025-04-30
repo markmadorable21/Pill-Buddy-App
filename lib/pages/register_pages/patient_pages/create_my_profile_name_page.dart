@@ -35,11 +35,21 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
     });
   }
 
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    super.dispose();
+  // @override
+  // void dispose() {
+  //   _firstNameController.dispose();
+  //   _lastNameController.dispose();
+  //   super.dispose();
+  // }
+// Method to combine first and last name and save to provider
+  void _saveCompleteName() {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final completeName = '$firstName $lastName';
+
+    // Save complete name to provider
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
+    provider.setCompleteName(completeName); // Save in provider
   }
 
   @override
@@ -49,6 +59,7 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 70,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -138,6 +149,7 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
                   ),
                   onPressed: _isButtonEnabled
                       ? () {
+                          _saveCompleteName();
                           logger.e("First Name: ${_firstNameController.text}");
                           logger.e("Last Name: ${_lastNameController.text}");
                           Navigator.push(

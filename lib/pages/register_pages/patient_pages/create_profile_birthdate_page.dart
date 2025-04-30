@@ -17,14 +17,15 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   var logger = Logger();
+  DateTime? selectedBirthDate; // Store the selected birthdate
 
-  final DateTime _minAgeDate =
-      DateTime.now().subtract(const Duration(days: 18 * 365));
+  final DateTime _minAgeDate = DateTime.now()
+      .subtract(const Duration(days: 18 * 365 + 5)); // im so smart HAHAAH
 
   @override
   void initState() {
     super.initState();
-    // set up the fade‐in animation
+    // set up the fade-in animation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -36,10 +37,24 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
     _controller.forward();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  // @override
+  // void dispose() {
+  //   _controller.dispose();
+  //   super.dispose();
+  // }
+
+  // Method to calculate age from birthdate
+  int _calculateAge(DateTime birthDate) {
+    final currentDate = DateTime.now();
+    final age = currentDate.year - birthDate.year;
+
+    // Check if birthday has already occurred this year, if not subtract 1
+    if (currentDate.month < birthDate.month ||
+        (currentDate.month == birthDate.month &&
+            currentDate.day < birthDate.day)) {
+      return age - 1;
+    }
+    return age;
   }
 
   Future<void> _pickDate() async {
@@ -61,6 +76,9 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
       },
     );
     if (pickedDate != null) {
+      setState(() {
+        selectedBirthDate = pickedDate;
+      });
       provider.setBirthDate(pickedDate);
       // replay the fade if you want to highlight the change
       _controller.forward(from: 0);
@@ -71,12 +89,21 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
   Widget build(BuildContext context) {
     final provider = Provider.of<MedicationProvider>(context);
     final hasDate = provider.birthDate != null;
-    final displayText =
-        hasDate ? provider.birthDateFormatted : "Select your birthdate";
+    final displayText = hasDate
+        ? "${provider.birthDateFormatted} (Age: ${_calculateAge(provider.birthDate!)})"
+        : "Select your birthdate";
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      appBar: AppBar(elevation: 0, backgroundColor: Colors.transparent),
+      appBar: AppBar(
+        toolbarHeight: 70,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Padding(
@@ -167,7 +194,10 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                     onPressed: hasDate
                         ? () {
                             final bday = provider.birthDateFormatted;
-                            logger.e('Date: $bday');
+                            logger.e('Birthdate: $bday');
+                            logger.e(
+                                "Age: ${_calculateAge(provider.birthDate!)}");
+                            provider.setAge(_calculateAge(provider.birthDate!));
                             Navigator.push(
                               context,
                               MaterialPageRoute(

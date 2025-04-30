@@ -47,6 +47,7 @@ class _CreateMyProfilePageState extends State<CreateMyProfilePage>
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 70,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
