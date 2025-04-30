@@ -199,20 +199,26 @@ class _CreateProfileConfirmEmailPageState
                     ),
                   ),
                   onPressed: () async {
-                    final verified = await checkEmailVerified();
-                    if (verified) {
-                      logger.i("Email verified.");
-                      showFrontToastSuccess(context, 'Email verified! 🎉');
+                    // Start a Timer that checks every second
+                    Timer.periodic(const Duration(microseconds: 1),
+                        (timer) async {
+                      final verified = await checkEmailVerified();
+                      if (verified) {
+                        // Stop the timer once the email is verified
+                        timer.cancel();
+                        logger.i("Email verified.");
+                        showFrontToastSuccess(context, 'Email verified! 🎉');
 
-                      // Navigator.of(context).pushReplacement(
-                      //   MaterialPageRoute(
-                      //     builder: (context) => const MainPage(),
-                      //   ),
-                      // );
-                    } else {
-                      logger.i("Email not verified yet.");
-                      showFrontToastError(context, 'Email not verified yet.');
-                    }
+                        // Navigator.of(context).pushReplacement(
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const MainPage(),
+                        //   ),
+                        // );
+                      } else {
+                        logger.i("Email not verified yet.");
+                        showFrontToastError(context, 'Email not verified yet.');
+                      }
+                    });
                   },
                   child: const Text('Continue',
                       style: TextStyle(fontSize: 16, color: Colors.white)),
@@ -341,12 +347,15 @@ class _CreateProfileConfirmEmailPageState
 
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Account Registration",
+            style: TextStyle(color: Colors.white)),
+        toolbarHeight: 70,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: primaryColor,
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -354,187 +363,184 @@ class _CreateProfileConfirmEmailPageState
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Form(
             key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                // Animated Email Icon
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: Icon(Icons.email, size: 80, color: primaryColor),
-                ),
-                const SizedBox(height: 20),
-
-                // Title
-                const Text(
-                  "Let's create your account\nto ensure your info is backed up",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-
-                // Subtitle
-                const Text(
-                  "A confirmation message will be sent to your email",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 30),
-
-                // Email Field
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: const Icon(Icons.email),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  // Animated Email Icon
+                  AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: const Duration(milliseconds: 500),
+                    child: Icon(Icons.email, size: 80, color: primaryColor),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Email is required";
-                    }
-                    //TODO: uncomment the email validation function
-                    else if (!_isValidEmail(value.trim())) {
-                      return "Enter a valid email";
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    provider.inputEmail(value);
-                  },
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Password Field
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword1,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword1
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () => setState(
-                          () => _obscurePassword1 = !_obscurePassword1),
-                    ),
+                  // Title
+                  const Text(
+                    "Let's create your account\nto ensure your info is backed up",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Password is required";
-                    }
-                    //TODO : uncomment the password validation function
-                    else if (!_isValidPassword(value)) {
-                      return "Invalid password format";
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    provider.inputPassword(value);
-                  },
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 6, left: 6),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Password must be at least: 6 characters long, an uppercase and lowercase letter, and a digit",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
+                  const SizedBox(height: 10),
+
+                  // Subtitle
+                  const Text(
+                    "A confirmation message will be sent to your email",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscurePassword2,
-                  decoration: InputDecoration(
-                    labelText: "Confirm Password",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword2
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () => setState(
-                          () => _obscurePassword2 = !_obscurePassword2),
+                  // Email Field
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      prefixIcon: const Icon(Icons.email),
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please confirm your password";
-                    } else if (value != _passwordController.text) {
-                      return "Passwords do not match";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Already have an account?"),
-                    TextButton(
-                      onPressed: () {
-                        // Navigate to Register Page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LoginPage()),
-                        );
-                      },
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const Spacer(),
-
-                // Next Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // ① hide any banner
-                      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-                      logger.e("Email: ${_emailController.text}");
-                      logger.e("Password: ${_passwordController.text}");
-                      _validateAndProceed();
-                      // _showVerifyEmailDialog();
-                      // _firebaseSentEmailPass();
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Email is required";
+                      } else if (!_isValidEmail(value.trim())) {
+                        return "Enter a valid email";
+                      }
+                      return null;
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password Field
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword1,
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword1
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword1 = !_obscurePassword1),
                       ),
                     ),
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Password is required";
+                      } else if (!_isValidPassword(value)) {
+                        return "Invalid password format";
+                      }
+                      return null;
+                    },
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6, left: 6),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Password must be at least: 6 characters long, an uppercase and lowercase letter, and a digit",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 40),
-              ],
+                  const SizedBox(height: 20),
+
+                  // Confirm Password Field
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscurePassword2,
+                    decoration: InputDecoration(
+                      labelText: "Confirm Password",
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword2
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword2 = !_obscurePassword2),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please confirm your password";
+                      } else if (value != _passwordController.text) {
+                        return "Passwords do not match";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Login Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Already have an account?"),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage()),
+                          );
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Next Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isButtonEnabled
+                          ? () {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentMaterialBanner();
+                              _validateAndProceed();
+                              provider.inputEmail(_emailController.text);
+                              provider.inputPassword(_passwordController.text);
+                              logger.e("Email: ${_emailController.text}");
+                              logger.e("Password: ${_passwordController.text}");
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Next",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
