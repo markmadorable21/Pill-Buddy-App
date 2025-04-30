@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
-import 'package:pill_buddy/pages/register_pages/patient_pages/select_profile_picture_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';

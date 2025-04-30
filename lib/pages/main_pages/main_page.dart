@@ -4,7 +4,6 @@ import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/manage_page.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

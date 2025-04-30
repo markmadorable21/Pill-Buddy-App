@@ -10,7 +10,7 @@ import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_bir
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
-import 'package:pill_buddy/pages/register_pages/patient_pages/select_profile_picture_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_loc;
@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const SelectProfilePicturePage(),
+      home: const UserInputConfirmationPage(),
     );
   }
 }
