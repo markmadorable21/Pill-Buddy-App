@@ -525,11 +525,17 @@ class _CreateProfileConfirmEmailPageState
                           ? () {
                               ScaffoldMessenger.of(context)
                                   .hideCurrentMaterialBanner();
-                              _validateAndProceed();
+                              // _validateAndProceed();
                               provider.inputEmail(_emailController.text);
                               provider.inputPassword(_passwordController.text);
                               logger.e("Email: ${_emailController.text}");
                               logger.e("Password: ${_passwordController.text}");
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const UserInputConfirmationPage()),
+                              );
                             }
                           : null,
                       style: ElevatedButton.styleFrom(

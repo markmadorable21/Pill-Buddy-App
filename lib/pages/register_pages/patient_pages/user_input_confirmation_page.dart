@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -81,6 +83,97 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     }
   }
 
+  void _showAddDependentDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // Dialog will not be dismissed by tapping outside
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Icon(
+                  Icons.person_add,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 16),
+                // Title Text
+                const Text(
+                  "Would you like to add a dependent (patient you want to see/monitor med schedules)?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Skip Button
+                    SizedBox(
+                      width: 120,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context); // Close the dialog
+                          // Add your logic for the "Skip" button here
+                        },
+                        child: const Text(
+                          "Skip",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    // Proceed Button
+                    SizedBox(
+                      width: 120,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context); // Close the dialog
+                          // Add your logic for the "Proceed" button here
+                        },
+                        child: const Text(
+                          "Proceed",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MedicationProvider>(context);
@@ -88,6 +181,8 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     final completeName = provider.completeName;
     final birthdate = provider.birthDateFormatted;
     final age = provider.calculatedAge;
+    final password = provider.inputtedPassword;
+    final email = provider.inputtedEmail;
     final gender =
         provider.selectedGender; // Assuming gender is stored in provider
     final primaryColor = Theme.of(context).colorScheme.primary;
@@ -96,178 +191,174 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     Widget genderIcon;
     switch (gender) {
       case 'Male':
-        genderIcon = const Icon(Icons.male, size: 180, color: Colors.white);
+        genderIcon = Icon(Icons.girl, size: 180, color: Colors.grey[200]);
         break;
       case 'Female':
-        genderIcon = const Icon(Icons.female, size: 180, color: Colors.white);
+        genderIcon = Icon(Icons.female, size: 180, color: Colors.grey[200]);
         break;
-      case 'Non-binary':
-        genderIcon =
-            const Icon(Icons.transgender, size: 180, color: Colors.white);
-        break;
-      case 'Agender':
-        genderIcon =
-            const Icon(Icons.accessibility, size: 180, color: Colors.white);
-        break;
-      case 'Bigender':
-        genderIcon =
-            const Icon(Icons.accessibility_new, size: 180, color: Colors.white);
-        break;
-      case 'Cis Man':
-        genderIcon = const Icon(Icons.male, size: 180, color: Colors.white);
-        break;
-      case 'Cis Woman':
-        genderIcon = const Icon(Icons.female, size: 180, color: Colors.white);
-        break;
-      case 'Genderless':
-        genderIcon =
-            const Icon(Icons.transgender, size: 180, color: Colors.white);
-        break;
-      case 'Genderqueer':
-        genderIcon =
-            const Icon(Icons.transgender, size: 180, color: Colors.white);
-        break;
-      case 'Third Gender':
-        genderIcon =
-            const Icon(Icons.accessibility_new, size: 180, color: Colors.white);
-        break;
-      case 'Transgender':
-        genderIcon =
-            const Icon(Icons.transgender, size: 180, color: Colors.white);
-        break;
-      case 'Trans Man':
-        genderIcon = const Icon(Icons.male, size: 180, color: Colors.white);
-        break;
-      case 'Trans Woman':
-        genderIcon = const Icon(Icons.female, size: 180, color: Colors.white);
-        break;
-      case 'Two-Spirit':
-        genderIcon =
-            const Icon(Icons.accessibility, size: 180, color: Colors.white);
-        break;
+
       default:
-        genderIcon =
-            const Icon(Icons.account_circle, size: 180, color: Colors.white);
+        genderIcon = Icon(Icons.account_circle,
+            size: 180, color: Colors.grey[200]); // Default icon for unknown
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Information",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: Column(
         children: [
-          // Top Container with profile picture and gender icon
-          Container(
-            color: primaryColor, // Primary color background for the top part
-            height: MediaQuery.of(context).size.height * 0.25,
-            width: double.infinity, // Half screen height
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  GestureDetector(
-                    onTap: _pickImage, // Trigger image picking
-                    child: _imageFile == null
-                        ? Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white, // Primary color border
-                                width: 3, // Border thickness
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              radius: 90,
-                              backgroundColor: primaryColor,
-                              child: genderIcon,
-                            ),
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white, // Primary color border
-                                width: 3, // Border thickness
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              radius: 90,
-                              backgroundImage:
-                                  FileImage(File(_imageFile!.path)),
+                  // Top Container with profile picture and gender icon
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(50),
+                        bottomRight: Radius.circular(50),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 7,
+                          offset:
+                              const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    width: double.infinity, // Half screen height
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: _pickImage, // Trigger image picking
+                            child: _imageFile == null
+                                ? CircleAvatar(
+                                    radius: 90,
+                                    backgroundColor: Colors.grey[400],
+                                    child: genderIcon,
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color:
+                                            primaryColor, // Primary color border
+                                        width: 3, // Border thickness
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 90,
+                                      backgroundImage:
+                                          FileImage(File(_imageFile!.path)),
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Bottom Container with user details and buttons
+                  SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Align(
+                            child: Text(
+                              textAlign: TextAlign.center,
+                              "Tap the icon to change your profile picture",
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.grey),
                             ),
                           ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Bottom Container with user details and buttons
-          SizedBox(
-            height: MediaQuery.of(context).size.height *
-                0.5, // Remaining half of the screen
-            width: double.infinity,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.person, color: Colors.black),
-                    title: Text(completeName),
-                  ),
-                  ListTile(
-                    leading:
-                        const Icon(Icons.calendar_today, color: Colors.black),
-                    title: Text(birthdate),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.cake, color: Colors.black),
-                    title: Text('Age: $age'),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Buttons Section (Back and Continue)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context); // Go back to previous screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
-                        ),
-                        child: const Text("Back"),
+                          const SizedBox(height: 10),
+                          ListTile(
+                            leading: const Icon(LucideIcons.user,
+                                color: Colors.blue),
+                            title: Text('Name: $completeName'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.calendar_today,
+                                color: Colors.green),
+                            title: Text('Birthdate: $birthdate'),
+                          ),
+                          ListTile(
+                            leading:
+                                const Icon(Icons.cake, color: Colors.orange),
+                            title: Text('Age: $age'),
+                          ),
+                          ListTile(
+                            leading: const Icon(LucideIcons.flagTriangleRight,
+                                color: Colors.purple),
+                            title: Text('Gender: $gender'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.email, color: Colors.red),
+                            title: Text('Email: $email'),
+                          ),
+                          ListTile(
+                            leading:
+                                const Icon(Icons.password, color: Colors.cyan),
+                            title: Text('Password: $password'),
+                          ),
+                          const SizedBox(height: 90),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  backgroundColor: primaryColor,
+                                ),
+                                onPressed: () {
+                                  _showAddDependentDialog(context);
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //       builder: (context) =>
+                                  //           const CreateProfileNamePage()),
+                                  // );
+                                },
+                                child: const Text(
+                                  "Confirm",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          e.e("Gender selected: ${provider.selectedGender}");
-                          // Navigate to next screen or perform necessary action
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
-                        ),
-                        child: const Text("Continue"),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
