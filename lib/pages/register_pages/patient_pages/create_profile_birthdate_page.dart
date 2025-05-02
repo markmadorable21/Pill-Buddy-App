@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/set_address_page.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
@@ -201,8 +202,7 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    const CreateProfileHopeToAchievePage(),
+                                builder: (_) => SetAddressPage(),
                               ),
                             );
                           }

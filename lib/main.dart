@@ -2,14 +2,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pill_buddy/firebase_options.dart';
+import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_ph.dart';
+import 'package:pill_buddy/pages/add_caregiver_family_pages/test_add_new_caregiver_page.dart';
+import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_picker.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/providers/address_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/set_address_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -72,7 +77,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MedicationProvider()),
-        // ChangeNotifierProvider(create: (_) => PurposeProvider()),
+        ChangeNotifierProvider(create: (_) => AddressProvider()),
       ],
       child: const MyApp(),
     ),
@@ -121,7 +126,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const UserInputConfirmationPage(),
+      home: const CreateProfileNamePage(),
     );
   }
 }

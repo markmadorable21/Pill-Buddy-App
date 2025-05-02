@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/add_caregiver_family_pages/add_new_caregiver_family_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:logger/logger.dart';
-
-final Logger e = Logger();
+import 'package:pill_buddy/pages/providers/address_provider.dart';
 
 class UserInputConfirmationPage extends StatefulWidget {
   const UserInputConfirmationPage({super.key});
@@ -18,6 +18,7 @@ class UserInputConfirmationPage extends StatefulWidget {
 }
 
 class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
+  final Logger e = Logger();
   late final ImagePicker _picker;
   XFile? _imageFile; // Store the picked image
 
@@ -83,11 +84,11 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     }
   }
 
-  void _showAddDependentDialog(BuildContext context) {
+  void _showAddCaregiverDialog(BuildContext context) {
     showDialog<void>(
       context: context,
       barrierDismissible:
-          false, // Dialog will not be dismissed by tapping outside
+          true, // Dialog will not be dismissed by tapping outside
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -108,7 +109,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                 const SizedBox(height: 16),
                 // Title Text
                 const Text(
-                  "Would you like to add a dependent (patient you want to see/monitor med schedules)?",
+                  "Would you like to add a caregiver (family or relative) to help you monitor your medications?",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18,
@@ -118,49 +119,98 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                 ),
                 const SizedBox(height: 32),
                 // Action Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Skip Button
                     SizedBox(
-                      width: 120,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      width: double.infinity,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                           ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context); // Close the dialog
-                          // Add your logic for the "Skip" button here
-                        },
-                        child: const Text(
-                          "Skip",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          onPressed: () {
+                            Navigator.pop(context); // Close the dialog
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       builder: (context) =>
+                            //           const CreateProfileNamePage()),
+                            // );
+                          },
+                          child: const Text(
+                            "Add Existing User",
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
-                    // Proceed Button
                     SizedBox(
-                      width: 120,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
+                      width: double.infinity,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: Colors.blue,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context); // Close the dialog
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AddNewCaregiverFamilyPage()),
+                            );
+                          },
+                          child: const Text(
+                            "Add New Caregiver/Family",
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context); // Close the dialog
+                          // Add Google login action
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => const GoogleSIgninPage()),
+                          // );
+                        },
+                        label: Text(
+                          "Later",
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context); // Close the dialog
-                          // Add your logic for the "Proceed" button here
-                        },
-                        child: const Text(
-                          "Proceed",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
                         ),
                       ),
                     ),
@@ -177,7 +227,8 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MedicationProvider>(context);
-
+    final provideradd = Provider.of<AddressProvider>(context);
+    final address = provideradd.completeAddress;
     final completeName = provider.completeName;
     final birthdate = provider.birthDateFormatted;
     final age = provider.calculatedAge;
@@ -243,7 +294,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                     height: MediaQuery.of(context).size.height * 0.25,
                     width: double.infinity, // Half screen height
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.only(bottom: 18),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -309,9 +360,14 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                             title: Text('Age: $age'),
                           ),
                           ListTile(
-                            leading: const Icon(LucideIcons.flagTriangleRight,
-                                color: Colors.purple),
+                            leading:
+                                const Icon(Icons.male, color: Colors.purple),
                             title: Text('Gender: $gender'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.location_city,
+                                color: Colors.brown),
+                            title: Text('Address: $address'),
                           ),
                           ListTile(
                             leading: const Icon(Icons.email, color: Colors.red),
@@ -337,7 +393,10 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                                   backgroundColor: primaryColor,
                                 ),
                                 onPressed: () {
-                                  _showAddDependentDialog(context);
+                                  print(
+                                      "First Name: ${Provider.of<AddressProvider>(context).completeAddress}");
+                                  _showAddCaregiverDialog(context);
+
                                   // Navigator.push(
                                   //   context,
                                   //   MaterialPageRoute(
