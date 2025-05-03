@@ -194,8 +194,8 @@ class _CreateProfileBirthdayPageState extends State<CreateProfileBirthdatePage>
                     ),
                     onPressed: hasDate
                         ? () {
-                            final bday = provider.birthDateFormatted;
-                            logger.e('Birthdate: $bday');
+                            logger
+                                .e('Birthdate: ${provider.birthDateFormatted}');
                             logger.e(
                                 "Age: ${_calculateAge(provider.birthDate!)}");
                             provider.setAge(_calculateAge(provider.birthDate!));

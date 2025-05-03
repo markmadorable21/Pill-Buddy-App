@@ -18,7 +18,7 @@ class UserInputConfirmationPage extends StatefulWidget {
 }
 
 class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
-  final Logger e = Logger();
+  var logger = Logger();
   late final ImagePicker _picker;
   XFile? _imageFile; // Store the picked image
 
@@ -65,22 +65,22 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
 
       // If a source is selected, pick image
       if (pickedSource != null) {
-        e.i('Attempting to pick an image from $pickedSource...');
+        logger.i('Attempting to pick an image from $pickedSource...');
         final XFile? pickedFile = await _picker.pickImage(source: pickedSource);
 
         if (pickedFile != null) {
-          e.i('Image picked successfully: ${pickedFile.path}');
+          logger.i('Image picked successfully: ${pickedFile.path}');
           setState(() {
             _imageFile = pickedFile; // Store the picked image file
           });
         } else {
-          e.w('No image selected. The user canceled the selection.');
+          logger.w('No image selected. The user canceled the selection.');
         }
       } else {
-        e.w('Image source was not selected.');
+        logger.w('Image source was not selected.');
       }
     } catch (error) {
-      e.e('Error picking image: $error');
+      logger.e('Error picking image: $error');
     }
   }
 
@@ -226,9 +226,8 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<MedicationProvider>(context);
-    final provideradd = Provider.of<AddressProvider>(context);
-    final address = provideradd.completeAddress;
+    final provider = context.read<MedicationProvider>();
+
     final completeName = provider.completeName;
     final birthdate = provider.birthDateFormatted;
     final age = provider.calculatedAge;
@@ -237,6 +236,11 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     final gender =
         provider.selectedGender; // Assuming gender is stored in provider
     final primaryColor = Theme.of(context).colorScheme.primary;
+
+    final addressProv = context.watch<AddressProvider>();
+    final address = addressProv.completeAddress.isEmpty
+        ? "No address provided"
+        : addressProv.completeAddress;
 
     // Gender icon mapping
     Widget genderIcon;
@@ -393,8 +397,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                                   backgroundColor: primaryColor,
                                 ),
                                 onPressed: () {
-                                  print(
-                                      "First Name: ${Provider.of<AddressProvider>(context).completeAddress}");
+                                  logger.e("Address: $address");
                                   _showAddCaregiverDialog(context);
 
                                   // Navigator.push(
