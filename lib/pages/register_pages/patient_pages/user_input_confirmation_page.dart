@@ -9,6 +9,8 @@ import 'package:pill_buddy/pages/add_caregiver_family_pages/add_new_caregiver_fa
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class UserInputConfirmationPage extends StatefulWidget {
   const UserInputConfirmationPage({super.key});
@@ -64,35 +66,45 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     }
   }
 
-  /// Uploads image to Cloudinary and returns the secure URL
-  Future<String?> _uploadImageToCloudinary() async {
+  /// Uploads image to Cloudinary and notifies provider
+  Future<String?> _uploadImage() async {
     if (_imageFile == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('No image selected')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No image selected')),
+      );
       return null;
     }
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Starting upload…')));
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Uploading image...')),
+    );
     try {
-      final response = await _cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
-          _imageFile!.path,
-          resourceType: CloudinaryResourceType.Image,
-        ),
+      final res = await _cloudinary.uploadFile(
+        CloudinaryFile.fromFile(_imageFile!.path,
+            resourceType: CloudinaryResourceType.Image),
       );
-
-      logger.i('Cloudinary upload success: ${response.secureUrl}');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Upload succeeded!')));
-      final url = response.secureUrl;
+      final url = res.secureUrl;
+      // Save URL in provider
       context.read<MedicationProvider>().setAvatarUrl(url);
+      // Also write user profile to Firestore
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'name': context.read<MedicationProvider>().completeName,
+          'birthdate': context.read<MedicationProvider>().birthDateFormatted,
+          'age': context.read<MedicationProvider>().calculatedAge,
+          'gender': context.read<MedicationProvider>().selectedGender,
+          'address': context.read<AddressProvider>().completeAddress,
+          'email': context.read<MedicationProvider>().inputtedEmail,
+          'password': context.read<MedicationProvider>().inputtedPassword,
+          'avatarUrl': url,
+        });
+      }
       return url;
     } catch (e) {
-      logger.e('Cloudinary upload error: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Upload error: $e')));
+      logger.e('Upload error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload error: $e')),
+      );
       return null;
     }
   }
@@ -284,7 +296,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  final imageUrl = await _uploadImageToCloudinary();
+                  final imageUrl = await _uploadImage();
                   if (imageUrl != null) {
                     logger.i('Uploaded image URL: $imageUrl');
                     // TODO: Save imageUrl to your database

@@ -15,7 +15,7 @@ import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_con
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/set_address_page.dart';
-import 'package:pill_buddy/pages/register_pages/patient_pages/test_user_input_confirm_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -134,7 +134,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const TestUserInputConfirmationPage(),
+      home: const CreateProfileNamePage(),
     );
   }
 }
