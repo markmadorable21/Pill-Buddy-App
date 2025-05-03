@@ -1,13 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/add_new_caregiver_family_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
-import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
-import 'package:provider/provider.dart';
-import 'dart:io';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
-import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
 
 class UserInputConfirmationPage extends StatefulWidget {
@@ -21,29 +21,36 @@ class UserInputConfirmationPage extends StatefulWidget {
 class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
   final Logger logger = Logger();
   late final ImagePicker _picker;
+  late final CloudinaryPublic _cloudinary;
   XFile? _imageFile;
 
   @override
   void initState() {
     super.initState();
     _picker = ImagePicker();
+    // Initialize CloudinaryPublic with your Cloudinary account details
+    _cloudinary = CloudinaryPublic(
+      'dnjab51pg', // e.g. "demo"
+      'flutter_avatar_upload', // unsigned preset name
+      cache: false,
+    );
   }
 
   Future<void> _pickImage() async {
     final pickedSource = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (c) => Column(
+      builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
             leading: const Icon(Icons.camera, color: Colors.green),
-            title: const Text("Take a Photo"),
-            onTap: () => Navigator.pop(c, ImageSource.camera),
+            title: const Text('Take a Photo'),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
           ),
           ListTile(
             leading: const Icon(Icons.photo_album, color: Colors.green),
-            title: const Text("Choose from Gallery"),
-            onTap: () => Navigator.pop(c, ImageSource.gallery),
+            title: const Text('Choose from Gallery'),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
           ),
         ],
       ),
@@ -51,11 +58,42 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     if (pickedSource == null) return;
     try {
       final pickedFile = await _picker.pickImage(source: pickedSource);
-      if (pickedFile != null) {
-        setState(() => _imageFile = pickedFile);
-      }
+      if (pickedFile != null) setState(() => _imageFile = pickedFile);
     } catch (e) {
       logger.e('Error picking image: $e');
+    }
+  }
+
+  /// Uploads image to Cloudinary and returns the secure URL
+  Future<String?> _uploadImageToCloudinary() async {
+    if (_imageFile == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No image selected')));
+      return null;
+    }
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Starting upload…')));
+
+    try {
+      final response = await _cloudinary.uploadFile(
+        CloudinaryFile.fromFile(
+          _imageFile!.path,
+          resourceType: CloudinaryResourceType.Image,
+        ),
+      );
+
+      logger.i('Cloudinary upload success: ${response.secureUrl}');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Upload succeeded!')));
+      final url = response.secureUrl;
+      context.read<MedicationProvider>().setAvatarUrl(url);
+      return url;
+    } catch (e) {
+      logger.e('Cloudinary upload error: $e');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Upload error: $e')));
+      return null;
     }
   }
 
@@ -75,77 +113,57 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                   size: 80, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 16),
               const Text(
-                "Would you like to add a caregiver (family or relative) to help you monitor your medications?",
+                'Would you like to add a caregiver (family or relative) to help you monitor your medications?',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (_) => const MainPage()),
-                  // );
-                },
+                onPressed: () => Navigator.pop(ctx),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
-                child: const Text(
-                  "Add Existing User",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
+                child: const Text('Add Existing User',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 16)),
               ),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
                   Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddNewCaregiverFamilyPage(),
-                    ),
-                  );
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const AddNewCaregiverFamilyPage()));
                 },
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text(
-                  "Add New Caregiver/Family",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: Colors.blue),
+                child: const Text('Add New Caregiver/Family',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 16)),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MainPage()),
-                  );
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => const MainPage()));
                 },
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  side:
-                      BorderSide(color: Theme.of(context).colorScheme.primary),
-                ),
-                child: Text(
-                  "Later",
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold),
-                ),
+                    minimumSize: const Size.fromHeight(50),
+                    side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary)),
+                child: Text('Later',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -172,7 +190,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("User Information",
+        title: const Text('User Information',
             style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: const BackButton(color: Colors.black),
@@ -181,7 +199,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
       ),
       body: Column(
         children: [
-          // Fixed header
+          // Header with avatar picker
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
@@ -206,94 +224,83 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                       ? CircleAvatar(
                           radius: 90,
                           backgroundColor: Colors.grey[300],
-                          child: Icon(
-                            Icons.person,
-                            size: 130,
-                            color: Colors.grey[400],
-                          ))
+                          child: Icon(Icons.person,
+                              size: 130, color: Colors.grey[400]),
+                        )
                       : Container(
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: primaryColor, // Primary color border
-                              width: 3, // Border thickness
-                            ),
-                          ),
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: primaryColor, width: 3)),
                           child: CircleAvatar(
-                            radius: 90,
-                            backgroundImage: FileImage(File(_imageFile!.path)),
-                          ),
+                              radius: 90,
+                              backgroundImage:
+                                  FileImage(File(_imageFile!.path))),
                         ),
                 ),
               ),
             ),
           ),
-          // Scrollable details
+          // Details list
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               children: [
                 const Center(
-                  child: Text(
-                    "Tap the icon to change your profile picture",
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
-                  ),
-                ),
+                    child: Text('Tap the icon to change your profile picture',
+                        style: TextStyle(fontSize: 15, color: Colors.grey))),
                 const SizedBox(height: 10),
                 ListTile(
-                  leading: const Icon(LucideIcons.user, color: Colors.blue),
-                  title: Text('Name: $completeName'),
-                ),
+                    leading: const Icon(LucideIcons.user, color: Colors.blue),
+                    title: Text('Name: $completeName')),
                 ListTile(
-                  leading:
-                      const Icon(Icons.calendar_today, color: Colors.green),
-                  title: Text('Birthdate: $birthdate'),
-                ),
+                    leading:
+                        const Icon(Icons.calendar_today, color: Colors.green),
+                    title: Text('Birthdate: $birthdate')),
                 ListTile(
-                  leading: const Icon(Icons.cake, color: Colors.orange),
-                  title: Text('Age: $age'),
-                ),
+                    leading: const Icon(Icons.cake, color: Colors.orange),
+                    title: Text('Age: $age')),
                 ListTile(
-                  leading: const Icon(Icons.male, color: Colors.purple),
-                  title: Text('Gender: $gender'),
-                ),
+                    leading: const Icon(Icons.male, color: Colors.purple),
+                    title: Text('Gender: $gender')),
                 ListTile(
-                  leading: const Icon(Icons.location_city, color: Colors.brown),
-                  title: Text('Address: $address'),
-                ),
+                    leading:
+                        const Icon(Icons.location_city, color: Colors.brown),
+                    title: Text('Address: $address')),
                 ListTile(
-                  leading: const Icon(Icons.email, color: Colors.red),
-                  title: Text('Email: $email'),
-                ),
+                    leading: const Icon(Icons.email, color: Colors.red),
+                    title: Text('Email: $email')),
                 ListTile(
-                  leading: const Icon(Icons.password, color: Colors.cyan),
-                  title: Text('Password: $password'),
-                ),
+                    leading: const Icon(Icons.password, color: Colors.cyan),
+                    title: Text('Password: $password')),
                 const SizedBox(height: 20),
               ],
             ),
           ),
-
-          // Fixed Confirm button
+          // Confirm button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _showAddCaregiverDialog,
+                onPressed: () async {
+                  final imageUrl = await _uploadImageToCloudinary();
+                  if (imageUrl != null) {
+                    logger.i('Uploaded image URL: $imageUrl');
+                    // TODO: Save imageUrl to your database
+                  }
+                  _showAddCaregiverDialog();
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text(
-                  "Confirm",
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
+                    backgroundColor: primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                child: const Text('Confirm',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
               ),
             ),
           ),

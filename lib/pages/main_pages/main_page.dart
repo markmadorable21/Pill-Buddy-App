@@ -4,6 +4,8 @@ import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/manage_page.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -30,6 +32,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = context.watch<MedicationProvider>().avatarUrl;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -37,18 +40,21 @@ class _MainPageState extends State<MainPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         toolbarHeight: 70,
         automaticallyImplyLeading: false,
-        title: const Row(
+        title: Row(
           children: [
             // Leftmost: User Profile and Name
             Expanded(
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage("assets/images/user_photo.png"),
+                    backgroundImage: avatarUrl != null
+                        ? NetworkImage(avatarUrl)
+                        : const AssetImage("assets/images/user_photo1.png")
+                            as ImageProvider,
                     radius: 22, // Adjust profile picture size
                   ),
-                  SizedBox(width: 10),
-                  Text(
+                  const SizedBox(width: 10),
+                  const Text(
                     "Mark Madorable",
                     style: TextStyle(
                         fontSize: 20,
@@ -105,9 +111,11 @@ class _MainPageState extends State<MainPage> {
                           width: 3, // Border thickness
                         ),
                       ),
-                      child: const CircleAvatar(
-                        backgroundImage:
-                            AssetImage("assets/images/user_photo.png"),
+                      child: CircleAvatar(
+                        backgroundImage: avatarUrl != null
+                            ? NetworkImage(avatarUrl)
+                            : const AssetImage("assets/images/user_photo1.png")
+                                as ImageProvider,
                         radius: 30, // Profile picture size
                       ),
                     ),

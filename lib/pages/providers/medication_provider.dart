@@ -44,6 +44,8 @@ class MedicationProvider with ChangeNotifier {
   String _selectedGender = '';
   DateTime? _birthDate;
   int _calculatedAge = 0;
+  String? _avatarUrl;
+  String? get avatarUrl => _avatarUrl;
 
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
@@ -106,6 +108,11 @@ class MedicationProvider with ChangeNotifier {
   void setSelectedGender(String gender) {
     _selectedGender = gender;
     notifyListeners(); // Notify listeners when the gender is updated
+  }
+
+  void setAvatarUrl(String url) {
+    _avatarUrl = url;
+    notifyListeners();
   }
 
   void setAge(int age) {

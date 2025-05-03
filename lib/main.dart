@@ -15,8 +15,10 @@ import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_con
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/set_address_page.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/test_user_input_confirm_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_loc;
 import 'package:provider/provider.dart';
@@ -72,7 +74,11 @@ Future<void> main() async {
           importance: Importance.max,
         ),
       );
-
+  await Supabase.initialize(
+    url: 'https://qsztkhiotsprqvdnbduf.supabase.co', // your Supabase URL
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzenRraGlvdHNwcnF2ZG5iZHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjAwMzMsImV4cCI6MjA2MTgzNjAzM30.NtDG-9VkkHaCzliym7C0YI0G-N_vV5ZUvZ79-tk8YeA', // your Supabase anon key
+  );
   runApp(
     MultiProvider(
       providers: [
@@ -83,6 +89,8 @@ Future<void> main() async {
     ),
   );
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -126,7 +134,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CreateProfileNamePage(),
+      home: const TestUserInputConfirmationPage(),
     );
   }
 }
