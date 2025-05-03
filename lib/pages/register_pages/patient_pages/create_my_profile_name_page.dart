@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/name_input_formatter.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/surname_input_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -101,13 +103,16 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
               duration: const Duration(milliseconds: 500),
               child: TextField(
                 controller: _firstNameController,
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: [NameInputFormatter()],
                 onChanged: (value) {
                   provider.inputFirstName(value);
                 },
                 decoration: InputDecoration(
                   labelText: "First Name",
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
@@ -120,14 +125,15 @@ class _CreateProfileNamePageState extends State<CreateProfileNamePage> {
               duration: const Duration(milliseconds: 500),
               child: TextField(
                 controller: _lastNameController,
-                onChanged: (value) {
-                  provider.inputLastName(value);
-                },
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: [SurnameInputFormatter()],
                 decoration: InputDecoration(
                   labelText: "Last Name",
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
+                onChanged: (val) => provider.inputLastName(val),
               ),
             ),
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/add_new_caregiver_family_page.dart';
+import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
@@ -18,413 +19,285 @@ class UserInputConfirmationPage extends StatefulWidget {
 }
 
 class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
-  var logger = Logger();
+  final Logger logger = Logger();
   late final ImagePicker _picker;
-  XFile? _imageFile; // Store the picked image
+  XFile? _imageFile;
 
   @override
   void initState() {
     super.initState();
-    _picker = ImagePicker(); // Initialize image picker
+    _picker = ImagePicker();
   }
 
-  // Function to pick image from camera or gallery
   Future<void> _pickImage() async {
+    final pickedSource = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (c) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera, color: Colors.green),
+            title: const Text("Take a Photo"),
+            onTap: () => Navigator.pop(c, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_album, color: Colors.green),
+            title: const Text("Choose from Gallery"),
+            onTap: () => Navigator.pop(c, ImageSource.gallery),
+          ),
+        ],
+      ),
+    );
+    if (pickedSource == null) return;
     try {
-      // Show a bottom sheet to select image source (Camera or Gallery)
-      final pickedSource = await showModalBottomSheet<ImageSource>(
-        context: context,
-        builder: (context) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(
-                  Icons.camera,
-                  color: Color.fromARGB(255, 24, 172, 24),
-                ),
-                title: const Text("Take a Photo"),
-                onTap: () {
-                  Navigator.pop(context, ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_album,
-                  color: Color.fromARGB(255, 24, 172, 24),
-                ),
-                title: const Text("Choose from Gallery"),
-                onTap: () {
-                  Navigator.pop(context, ImageSource.gallery);
-                },
-              ),
-            ],
-          );
-        },
-      );
-
-      // If a source is selected, pick image
-      if (pickedSource != null) {
-        logger.i('Attempting to pick an image from $pickedSource...');
-        final XFile? pickedFile = await _picker.pickImage(source: pickedSource);
-
-        if (pickedFile != null) {
-          logger.i('Image picked successfully: ${pickedFile.path}');
-          setState(() {
-            _imageFile = pickedFile; // Store the picked image file
-          });
-        } else {
-          logger.w('No image selected. The user canceled the selection.');
-        }
-      } else {
-        logger.w('Image source was not selected.');
+      final pickedFile = await _picker.pickImage(source: pickedSource);
+      if (pickedFile != null) {
+        setState(() => _imageFile = pickedFile);
       }
-    } catch (error) {
-      logger.e('Error picking image: $error');
+    } catch (e) {
+      logger.e('Error picking image: $e');
     }
   }
 
-  void _showAddCaregiverDialog(BuildContext context) {
+  void _showAddCaregiverDialog() {
     showDialog<void>(
       context: context,
-      barrierDismissible:
-          true, // Dialog will not be dismissed by tapping outside
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon
-                Icon(
-                  Icons.person_add,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.person_add,
+                  size: 80, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 16),
+              const Text(
+                "Would you like to add a caregiver (family or relative) to help you monitor your medications?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  // Navigator.pushReplacement(
+                  //   context,
+                  //   MaterialPageRoute(builder: (_) => const MainPage()),
+                  // );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(height: 16),
-                // Title Text
-                const Text(
-                  "Would you like to add a caregiver (family or relative) to help you monitor your medications?",
-                  textAlign: TextAlign.center,
+                child: const Text(
+                  "Add Existing User",
                   style: TextStyle(
-                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 32),
-                // Action Buttons
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context); // Close the dialog
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //       builder: (context) =>
-                            //           const CreateProfileNamePage()),
-                            // );
-                          },
-                          child: const Text(
-                            "Add Existing User",
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AddNewCaregiverFamilyPage(),
                     ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: Colors.blue,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context); // Close the dialog
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AddNewCaregiverFamilyPage()),
-                            );
-                          },
-                          child: const Text(
-                            "Add New Caregiver/Family",
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context); // Close the dialog
-                          // Add Google login action
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => const GoogleSIgninPage()),
-                          // );
-                        },
-                        label: Text(
-                          "Later",
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
-                      ),
-                    ),
-                  ],
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  backgroundColor: Colors.blue,
                 ),
-              ],
-            ),
+                child: const Text(
+                  "Add New Caregiver/Family",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MainPage()),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  side:
+                      BorderSide(color: Theme.of(context).colorScheme.primary),
+                ),
+                child: Text(
+                  "Later",
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<MedicationProvider>();
-
-    final completeName = provider.completeName;
-    final birthdate = provider.birthDateFormatted;
-    final age = provider.calculatedAge;
-    final password = provider.inputtedPassword;
-    final email = provider.inputtedEmail;
-    final gender =
-        provider.selectedGender; // Assuming gender is stored in provider
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
+    final medProv = context.read<MedicationProvider>();
     final addressProv = context.watch<AddressProvider>();
+
+    final completeName = medProv.completeName;
+    final birthdate = medProv.birthDateFormatted;
+    final age = medProv.calculatedAge;
+    final email = medProv.inputtedEmail;
+    final password = medProv.inputtedPassword;
+    final gender = medProv.selectedGender;
     final address = addressProv.completeAddress.isEmpty
-        ? "No address provided"
+        ? 'No address provided'
         : addressProv.completeAddress;
-
-    // Gender icon mapping
-    Widget genderIcon;
-    switch (gender) {
-      case 'Male':
-        genderIcon = Icon(Icons.girl, size: 180, color: Colors.grey[200]);
-        break;
-      case 'Female':
-        genderIcon = Icon(Icons.female, size: 180, color: Colors.grey[200]);
-        break;
-
-      default:
-        genderIcon = Icon(Icons.account_circle,
-            size: 180, color: Colors.grey[200]); // Default icon for unknown
-    }
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Information",
             style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        elevation: 0,
+        leading: const BackButton(color: Colors.black),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Top Container with profile picture and gender icon
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(50),
-                        bottomRight: Radius.circular(50),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 7,
-                          offset:
-                              const Offset(0, 3), // changes position of shadow
+          // Fixed header
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50)),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    blurRadius: 7,
+                    offset: const Offset(0, 3))
+              ],
+            ),
+            height: MediaQuery.of(context).size.height * 0.25,
+            width: double.infinity,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 18.0),
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: _imageFile == null
+                      ? CircleAvatar(
+                          radius: 90,
+                          backgroundColor: Colors.grey[300],
+                          child: Icon(
+                            Icons.person,
+                            size: 130,
+                            color: Colors.grey[400],
+                          ))
+                      : Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: primaryColor, // Primary color border
+                              width: 3, // Border thickness
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 90,
+                            backgroundImage: FileImage(File(_imageFile!.path)),
+                          ),
                         ),
-                      ],
-                    ),
-                    height: MediaQuery.of(context).size.height * 0.25,
-                    width: double.infinity, // Half screen height
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 18),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: _pickImage, // Trigger image picking
-                            child: _imageFile == null
-                                ? CircleAvatar(
-                                    radius: 90,
-                                    backgroundColor: Colors.grey[400],
-                                    child: genderIcon,
-                                  )
-                                : Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color:
-                                            primaryColor, // Primary color border
-                                        width: 3, // Border thickness
-                                      ),
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 90,
-                                      backgroundImage:
-                                          FileImage(File(_imageFile!.path)),
-                                    ),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Bottom Container with user details and buttons
-                  SizedBox(
-                    width: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Align(
-                            child: Text(
-                              textAlign: TextAlign.center,
-                              "Tap the icon to change your profile picture",
-                              style:
-                                  TextStyle(fontSize: 15, color: Colors.grey),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ListTile(
-                            leading: const Icon(LucideIcons.user,
-                                color: Colors.blue),
-                            title: Text('Name: $completeName'),
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.calendar_today,
-                                color: Colors.green),
-                            title: Text('Birthdate: $birthdate'),
-                          ),
-                          ListTile(
-                            leading:
-                                const Icon(Icons.cake, color: Colors.orange),
-                            title: Text('Age: $age'),
-                          ),
-                          ListTile(
-                            leading:
-                                const Icon(Icons.male, color: Colors.purple),
-                            title: Text('Gender: $gender'),
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.location_city,
-                                color: Colors.brown),
-                            title: Text('Address: $address'),
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.email, color: Colors.red),
-                            title: Text('Email: $email'),
-                          ),
-                          ListTile(
-                            leading:
-                                const Icon(Icons.password, color: Colors.cyan),
-                            title: Text('Password: $password'),
-                          ),
-                          const SizedBox(height: 90),
-                          SizedBox(
-                            width: double.infinity,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 20),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 14),
-                                  backgroundColor: primaryColor,
-                                ),
-                                onPressed: () {
-                                  logger.e("Address: $address");
-                                  _showAddCaregiverDialog(context);
-
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //       builder: (context) =>
-                                  //           const CreateProfileNamePage()),
-                                  // );
-                                },
-                                child: const Text(
-                                  "Confirm",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+          // Scrollable details
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              children: [
+                const Center(
+                  child: Text(
+                    "Tap the icon to change your profile picture",
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ListTile(
+                  leading: const Icon(LucideIcons.user, color: Colors.blue),
+                  title: Text('Name: $completeName'),
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.calendar_today, color: Colors.green),
+                  title: Text('Birthdate: $birthdate'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.cake, color: Colors.orange),
+                  title: Text('Age: $age'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.male, color: Colors.purple),
+                  title: Text('Gender: $gender'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.location_city, color: Colors.brown),
+                  title: Text('Address: $address'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.email, color: Colors.red),
+                  title: Text('Email: $email'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.password, color: Colors.cyan),
+                  title: Text('Password: $password'),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+
+          // Fixed Confirm button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _showAddCaregiverDialog,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text(
+                  "Confirm",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
