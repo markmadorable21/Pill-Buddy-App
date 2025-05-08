@@ -8,6 +8,7 @@ import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_p
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
@@ -75,11 +76,7 @@ Future<void> main() async {
           importance: Importance.max,
         ),
       );
-  await Supabase.initialize(
-    url: 'https://qsztkhiotsprqvdnbduf.supabase.co', // your Supabase URL
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzenRraGlvdHNwcnF2ZG5iZHVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjAwMzMsImV4cCI6MjA2MTgzNjAzM30.NtDG-9VkkHaCzliym7C0YI0G-N_vV5ZUvZ79-tk8YeA', // your Supabase anon key
-  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -135,7 +132,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainPage(),
+      home: TestHomePage(),
     );
   }
 }
