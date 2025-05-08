@@ -220,7 +220,7 @@ class SetAddressPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 180),
+                const SizedBox(height: 160),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: ElevatedButton(

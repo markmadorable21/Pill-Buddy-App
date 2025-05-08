@@ -6,6 +6,7 @@ import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_p
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_add_new_caregiver_page.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_picker.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
+import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
@@ -134,7 +135,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CreateProfileNamePage(),
+      home: const MainPage(),
     );
   }
 }

@@ -125,10 +125,14 @@ class _CreateProfileConfirmEmailPageState
       // Optionally: store email/password in your own provider
       Provider.of<MedicationProvider>(context, listen: false)
           .inputEmail(email); // or use a dedicated AuthProvider
+
+      Provider.of<MedicationProvider>(context, listen: false)
+          .inputPassword(_passwordController.text);
       logger.i("Provider called");
 
       Navigator.of(context).pop(); // remove the loading dialog
       _showVerifyEmailDialog();
+
       logger.i("_showVerifyEmailDialog() called");
     } on FirebaseAuthException catch (e) {
       Navigator.of(context).pop(); // remove loading
@@ -211,20 +215,21 @@ class _CreateProfileConfirmEmailPageState
                         showFrontToastSuccess(context, 'Email verified! 🎉');
                         Navigator.of(context).pop(); // close dialog
 
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const UserInputConfirmationPage(),
-                          ),
-                        );
-
-                        // Navigator.pushAndRemoveUntil(
-                        //   context,
+                        // Navigator.of(context).pushReplacement(
                         //   MaterialPageRoute(
-                        //       builder: (context) => const MainPage()),
-                        //   (Route<dynamic> route) =>
-                        //       false, // This will remove all previous routes
+                        //     builder: (context) =>
+                        //         const UserInputConfirmationPage(),
+                        //   ),
                         // );
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const UserInputConfirmationPage()),
+                          (Route<dynamic> route) =>
+                              false, // This will remove all previous routes
+                        );
                       } else {
                         logger.i("Email not verified yet.");
                         showFrontToastError(context, 'Email not verified yet.');
@@ -354,7 +359,6 @@ class _CreateProfileConfirmEmailPageState
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final provider = Provider.of<MedicationProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -529,16 +533,8 @@ class _CreateProfileConfirmEmailPageState
                               ScaffoldMessenger.of(context)
                                   .hideCurrentMaterialBanner();
                               _validateAndProceed();
-                              provider.inputEmail(_emailController.text);
-                              provider.inputPassword(_passwordController.text);
                               logger.e("Email: ${_emailController.text}");
                               logger.e("Password: ${_passwordController.text}");
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const UserInputConfirmationPage()),
-                              );
                             }
                           : null,
                       style: ElevatedButton.styleFrom(

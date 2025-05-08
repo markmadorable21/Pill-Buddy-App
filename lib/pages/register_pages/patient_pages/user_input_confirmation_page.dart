@@ -66,40 +66,39 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     }
   }
 
-  /// Uploads image to Cloudinary and notifies provider
   Future<String?> _uploadImage() async {
     if (_imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No image selected')),
+        const SnackBar(
+            content: Text('No image selected, using default image.')),
       );
-      return null;
+
+      // Default image URL from Cloudinary (this should be an already uploaded image)
+      const defaultImageUrl =
+          'https://res.cloudinary.com/dnjab51pg/image/upload/v1746376348/user_photo1_yzkwuf.png';
+
+      // Save the default URL to the provider
+      context.read<MedicationProvider>().setAvatarUrl(defaultImageUrl);
+
+      return defaultImageUrl; // Return the default URL
     }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Uploading image...')),
     );
+
     try {
       final res = await _cloudinary.uploadFile(
         CloudinaryFile.fromFile(_imageFile!.path,
             resourceType: CloudinaryResourceType.Image),
       );
+
       final url = res.secureUrl;
-      // Save URL in provider
+
+      // Save the uploaded URL to the provider
       context.read<MedicationProvider>().setAvatarUrl(url);
-      // Also write user profile to Firestore
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'name': context.read<MedicationProvider>().completeName,
-          'birthdate': context.read<MedicationProvider>().birthDateFormatted,
-          'age': context.read<MedicationProvider>().calculatedAge,
-          'gender': context.read<MedicationProvider>().selectedGender,
-          'address': context.read<AddressProvider>().completeAddress,
-          'email': context.read<MedicationProvider>().inputtedEmail,
-          'password': context.read<MedicationProvider>().inputtedPassword,
-          'avatarUrl': url,
-        });
-      }
-      return url;
+
+      return url; // Return the uploaded URL
     } catch (e) {
       logger.e('Upload error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,7 +111,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
   void _showAddCaregiverDialog() {
     showDialog<void>(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: false,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -300,6 +299,42 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                   if (imageUrl != null) {
                     logger.i('Uploaded image URL: $imageUrl');
                     // TODO: Save imageUrl to your database
+                  }
+                  logger.e("Name: $completeName");
+                  logger.e("Birthdate: $birthdate");
+                  logger.e("Age: $age");
+
+                  logger.e("Gender: $gender");
+
+                  logger.e("address: $address");
+
+                  logger.e("email: $email");
+                  logger.e("password: $password");
+                  logger.e("avatarUrl: $imageUrl");
+
+                  // Write user profile to Firestore
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    await FirebaseFirestore.instance
+                        .collection('patients')
+                        .doc(user.uid)
+                        .set({
+                      'name': context.read<MedicationProvider>().completeName,
+                      'birthdate':
+                          context.read<MedicationProvider>().birthDateFormatted,
+                      'age': context.read<MedicationProvider>().calculatedAge,
+                      'gender':
+                          context.read<MedicationProvider>().selectedGender,
+                      'address':
+                          context.read<AddressProvider>().completeAddress,
+                      'email': context.read<MedicationProvider>().inputtedEmail,
+                      'password':
+                          context.read<MedicationProvider>().inputtedPassword,
+                      'avatarUrl': context.read<MedicationProvider>().avatarUrl,
+                    });
+                    logger.e('User profile saved to Firestore.');
+                  } else {
+                    logger.e('No user is currently signed in.');
                   }
                   _showAddCaregiverDialog();
                 },
