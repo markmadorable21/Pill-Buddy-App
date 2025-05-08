@@ -13,16 +13,42 @@ class TestHomePage extends StatefulWidget {
 
 class _TestHomePageState extends State<TestHomePage> {
   DateTime _currentDate = DateTime.now();
-  List<DateTime> _weekDates = [];
-  List<Map<String, String>> _medications = [];
+  List<Map<String, dynamic>> _medications = [];
 
   // To track the offset for the infinite scroll
   ScrollController _scrollController = ScrollController();
 
-  // Generate the list of dates dynamically based on the current date
-  List<DateTime> _generateDates(int count) {
-    final today = DateTime.now();
-    return List.generate(count, (index) => today.add(Duration(days: index)));
+  // Method to add medication to the list
+  void _addMedication(String medName, TimeOfDay time, DateTime date,
+      String medForm, String purpose, String amount, DateTime expirationDate) {
+    setState(() {
+      _medications.add({
+        'name': medName,
+        'time': time.format(context),
+        'date': DateFormat('yyyy-MM-dd').format(date),
+        'medForm': medForm,
+        'purpose': purpose,
+        'amount': amount,
+        'expirationDate': DateFormat('yyyy-MM-dd').format(expirationDate),
+      });
+    });
+
+    // Sort the medications by time, and handle same times gracefully
+    _medications.sort((a, b) {
+      final timeA =
+          TimeOfDay.fromDateTime(DateTime.parse(a['date'] + ' ' + a['time']));
+      final timeB =
+          TimeOfDay.fromDateTime(DateTime.parse(b['date'] + ' ' + b['time']));
+
+      // Compare times and handle if they are the same
+      if (timeA.hour == timeB.hour && timeA.minute == timeB.minute) {
+        return 0; // No change if times are identical
+      } else {
+        return timeA.hour.compareTo(timeB.hour) == 0
+            ? timeA.minute.compareTo(timeB.minute)
+            : timeA.hour.compareTo(timeB.hour);
+      }
+    });
   }
 
   void _goToToday() {
@@ -31,25 +57,15 @@ class _TestHomePageState extends State<TestHomePage> {
     });
 
     // Calculate the index of the current day
-    int indexOfToday = DateTime.now().difference(DateTime.now()).inDays + 500;
+    int indexOfToday = DateTime.now().difference(DateTime.now()).inDays + 577;
 
     // Scroll to the position of today's date
     _scrollController.animateTo(
       (indexOfToday *
-          60.0), // Multiply by 60 for the width of each day container
+          50.0), // Multiply by 60 for the width of each day container
       duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
-  }
-
-  void _addMedication(String medName, TimeOfDay time, DateTime date) {
-    setState(() {
-      _medications.add({
-        'name': medName,
-        'time': time.format(context),
-        'date': DateFormat('yyyy-MM-dd').format(date),
-      });
-    });
   }
 
   @override
@@ -79,8 +95,8 @@ class _TestHomePageState extends State<TestHomePage> {
                       });
                     },
                     child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      width: 50,
+                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 8),
                       alignment: Alignment.center,
                       margin: EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
@@ -120,9 +136,14 @@ class _TestHomePageState extends State<TestHomePage> {
                 itemBuilder: (context, index) {
                   if (_medications[index]['date'] ==
                       DateFormat('yyyy-MM-dd').format(_currentDate)) {
-                    return ListTile(
-                      title: Text(_medications[index]['name']!),
-                      subtitle: Text('Time: ${_medications[index]['time']}'),
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        title: Text(_medications[index]['name']),
+                        subtitle: Text(
+                          'Time: ${_medications[index]['time']} \nForm: ${_medications[index]['medForm']} \nPurpose: ${_medications[index]['purpose']} \nAmount: ${_medications[index]['amount']} \nExpiration: ${_medications[index]['expirationDate']}',
+                        ),
+                      ),
                     );
                   } else {
                     return Container();

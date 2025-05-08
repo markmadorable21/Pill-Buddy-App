@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
 
 class AddMedicationPage extends StatefulWidget {
-  final Function(String, TimeOfDay, DateTime) onAddMedication;
+  final Function(String, TimeOfDay, DateTime, String, String, String, DateTime)
+      onAddMedication;
 
   AddMedicationPage({required this.onAddMedication});
 
@@ -11,8 +13,15 @@ class AddMedicationPage extends StatefulWidget {
 
 class _AddMedicationPageState extends State<AddMedicationPage> {
   TextEditingController _medNameController = TextEditingController();
+  TextEditingController _medFormController = TextEditingController();
+  TextEditingController _purposeController = TextEditingController();
+  TextEditingController _amountController = TextEditingController();
   TimeOfDay _time = TimeOfDay.now();
   DateTime _date = DateTime.now();
+  DateTime _expirationDate = DateTime.now();
+
+  // Formatter for date
+  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +35,30 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
             TextField(
               controller: _medNameController,
               decoration: InputDecoration(labelText: "Medication Name"),
+            ),
+            SizedBox(height: 10),
+
+            // Medication Form (e.g., pill, injection, etc.)
+            TextField(
+              controller: _medFormController,
+              decoration: InputDecoration(
+                  labelText: "Medication Form (e.g., pill, injection)"),
+            ),
+            SizedBox(height: 10),
+
+            // Purpose Field
+            TextField(
+              controller: _purposeController,
+              decoration:
+                  InputDecoration(labelText: "Purpose (e.g., cough, HIV)"),
+            ),
+            SizedBox(height: 10),
+
+            // Amount Field
+            TextField(
+              controller: _amountController,
+              decoration:
+                  InputDecoration(labelText: "Amount (e.g., 1 pill, 2ml)"),
             ),
             SizedBox(height: 10),
 
@@ -46,7 +79,7 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
             ),
             SizedBox(height: 10),
 
-            // Date Picker
+            // Date Picker for Medication Date
             ListTile(
               title: Text("Date: ${_date.toLocal()}".split(' ')[0]),
               onTap: () async {
@@ -65,10 +98,43 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
             ),
             SizedBox(height: 10),
 
+            // Expiration Date Picker
+            ListTile(
+              title: Text("Expiration Date: ${_expirationDate.toLocal()}"
+                  .split(' ')[0]),
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: _expirationDate,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null && pickedDate != _expirationDate) {
+                  setState(() {
+                    _expirationDate = pickedDate;
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 10),
+
             // Save Medication Button
             ElevatedButton(
               onPressed: () {
-                widget.onAddMedication(_medNameController.text, _time, _date);
+                // Format date before passing it
+                final formattedDate = _dateFormatter.format(_date);
+                final formattedExpirationDate =
+                    _dateFormatter.format(_expirationDate);
+
+                widget.onAddMedication(
+                  _medNameController.text,
+                  _time,
+                  _date,
+                  _medFormController.text,
+                  _purposeController.text,
+                  _amountController.text,
+                  _expirationDate,
+                );
                 Navigator.pop(context);
               },
               child: Text("Save Medication"),
