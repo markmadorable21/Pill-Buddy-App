@@ -1,29 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-enum RecurrenceType {
-  daily,
-  everyOtherDay,
-  specificWeekDays,
-  everyXDays,
-  // …add the ones you support
-}
-
 class MedicationEntry {
-  final String med, form, purpose, amount, expiration;
-  final RecurrenceType type;
-  final List<int>? specificWeekDays; // [DateTime.monday, …]
-  final int? interval; // for everyXDays/weeks/months
-  final List<TimeOfDay> times; // e.g. [8:00, 20:00] for twice a day
+  final String med;
+  final String form;
+  final String purpose;
+  final String frequency;
+  final String time;
+  final String amount;
+  final String expiration;
 
-  MedicationEntry(
-    this.specificWeekDays,
-    this.interval, {
+  MedicationEntry({
     required this.med,
     required this.form,
     required this.purpose,
-    required this.type,
-    required this.times,
+    required this.frequency,
+    required this.time,
     required this.amount,
     required this.expiration,
   });
