@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 import 'add_medication_page.dart'; // Import the page for adding medication
 
 void main() {
-  runApp(MaterialApp(home: TestHomePage()));
+  runApp(const MaterialApp(home: TestHomePage()));
 }
 
 class TestHomePage extends StatefulWidget {
+  const TestHomePage({super.key});
+
   @override
   _TestHomePageState createState() => _TestHomePageState();
 }
@@ -22,32 +24,47 @@ class _TestHomePageState extends State<TestHomePage> {
   void _addMedication(String medName, TimeOfDay time, DateTime date,
       String medForm, String purpose, String amount, DateTime expirationDate) {
     setState(() {
+      // Ensure that we are formatting the DateTime correctly
+      DateTime medicationDate = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+
+      // For expiration date, we can use the same approach to store it correctly
+      DateTime medicationExpirationDate = DateTime(
+        expirationDate.year,
+        expirationDate.month,
+        expirationDate.day,
+      );
+
+      // Add medication with DateTime objects
       _medications.add({
         'name': medName,
-        'time': time.format(context),
-        'date': DateFormat('yyyy-MM-dd').format(date),
+        'time': time.format(context), // Time formatted for display
+        'date': DateFormat('yyyy-MM-dd')
+            .format(medicationDate), // Format date for display
         'medForm': medForm,
         'purpose': purpose,
         'amount': amount,
-        'expirationDate': DateFormat('yyyy-MM-dd').format(expirationDate),
+        'expirationDate': DateFormat('yyyy-MM-dd')
+            .format(medicationExpirationDate), // Expiration formatted
+        'medicationDate':
+            medicationDate, // Store the full DateTime for comparison
+        'medicationExpirationDate':
+            medicationExpirationDate, // Store expiration DateTime
       });
     });
 
-    // Sort the medications by time, and handle same times gracefully
+    // Sorting the medications by the medicationDate (including both date and time)
     _medications.sort((a, b) {
-      final timeA =
-          TimeOfDay.fromDateTime(DateTime.parse(a['date'] + ' ' + a['time']));
-      final timeB =
-          TimeOfDay.fromDateTime(DateTime.parse(b['date'] + ' ' + b['time']));
+      DateTime dateTimeA = a['medicationDate'];
+      DateTime dateTimeB = b['medicationDate'];
 
-      // Compare times and handle if they are the same
-      if (timeA.hour == timeB.hour && timeA.minute == timeB.minute) {
-        return 0; // No change if times are identical
-      } else {
-        return timeA.hour.compareTo(timeB.hour) == 0
-            ? timeA.minute.compareTo(timeB.minute)
-            : timeA.hour.compareTo(timeB.hour);
-      }
+      // Compare the full DateTime values
+      return dateTimeA.compareTo(dateTimeB);
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:intl/intl.dart';
+import 'package:logger/logger.dart'; // Import for date formatting
 
 class AddMedicationPage extends StatefulWidget {
   final Function(String, TimeOfDay, DateTime, String, String, String, DateTime)
@@ -12,6 +13,7 @@ class AddMedicationPage extends StatefulWidget {
 }
 
 class _AddMedicationPageState extends State<AddMedicationPage> {
+  var logger = Logger();
   TextEditingController _medNameController = TextEditingController();
   TextEditingController _medFormController = TextEditingController();
   TextEditingController _purposeController = TextEditingController();
@@ -125,16 +127,22 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                 final formattedDate = _dateFormatter.format(_date);
                 final formattedExpirationDate =
                     _dateFormatter.format(_expirationDate);
+                logger.e(
+                    'Medication Date: $_date, Expiration Date: $_expirationDate');
 
-                widget.onAddMedication(
-                  _medNameController.text,
-                  _time,
-                  _date,
-                  _medFormController.text,
-                  _purposeController.text,
-                  _amountController.text,
-                  _expirationDate,
-                );
+                try {
+                  widget.onAddMedication(
+                    _medNameController.text,
+                    _time,
+                    _date,
+                    _medFormController.text,
+                    _purposeController.text,
+                    _amountController.text,
+                    _expirationDate,
+                  );
+                } catch (e) {
+                  logger.e('Error:$e');
+                }
                 Navigator.pop(context);
               },
               child: Text("Save Medication"),
