@@ -27,8 +27,13 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return Scaffold(
-      appBar: AppBar(title: Text("Add Medication")),
+      appBar: AppBar(
+        title: Text("Add Medication - Specific Day"),
+        toolbarHeight: 70,
+        backgroundColor: primaryColor,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
