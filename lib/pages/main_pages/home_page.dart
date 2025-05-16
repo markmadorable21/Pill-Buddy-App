@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:pill_buddy/pages/add_medication_pages/add_med_name_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -27,94 +27,94 @@ class _HomePageState extends State<HomePage> {
     todayPageIndex = totalWeeks ~/ 2;
     _pageController = PageController(initialPage: todayPageIndex);
 
-    // ADD THIS — preload mock data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<MedicationProvider>(context, listen: false);
+    // // ADD THIS — preload mock data
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final provider = Provider.of<MedicationProvider>(context, listen: false);
 
-      // Only add if empty (to avoid duplicates during hot reloads)
-      if (provider.medList.isEmpty) {
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Paracetamol',
-            form: 'Pill',
-            purpose: 'Headache',
-            frequency: 'Once a day',
-            time: '8:00 AM',
-            amount: '1',
-            expiration: '2025-12-31',
-          ),
-        );
+    //   // Only add if empty (to avoid duplicates during hot reloads)
+    //   if (provider.medList.isEmpty) {
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Paracetamol',
+    //         form: 'Pill',
+    //         purpose: 'Headache',
+    //         frequency: 'Once a day',
+    //         time: '8:00 AM',
+    //         amount: '1',
+    //         expiration: '2025-12-31',
+    //       ),
+    //     );
 
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Cough Syrup',
-            form: 'Injection',
-            purpose: 'Cough',
-            frequency: 'Twice a day',
-            time: '8:00 AM',
-            amount: '10',
-            expiration: '2025-11-15',
-          ),
-        );
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Cough Syrup',
+    //         form: 'Injection',
+    //         purpose: 'Cough',
+    //         frequency: 'Twice a day',
+    //         time: '8:00 AM',
+    //         amount: '10',
+    //         expiration: '2025-11-15',
+    //       ),
+    //     );
 
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Antibiotic',
-            form: 'Solution (Liquid)',
-            purpose: 'Virginitis',
-            frequency: '3 times a day',
-            time: '9:00 PM',
-            amount: '1',
-            expiration: '2025-10-20',
-          ),
-        );
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Antibiotic',
+    //         form: 'Solution (Liquid)',
+    //         purpose: 'Virginitis',
+    //         frequency: '3 times a day',
+    //         time: '9:00 PM',
+    //         amount: '1',
+    //         expiration: '2025-10-20',
+    //       ),
+    //     );
 
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Shabu Liquid',
-            form: 'Drops',
-            purpose: 'Borks',
-            frequency: '3 times a day',
-            time: '5:00 PM',
-            amount: '1',
-            expiration: '2025-10-20',
-          ),
-        );
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Marijuana',
-            form: 'Inhaler',
-            purpose: 'Sabog',
-            frequency: '3 times a day',
-            time: '5:00 PM',
-            amount: '1',
-            expiration: '2025-10-20',
-          ),
-        );
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'Exstacy',
-            form: 'Powder',
-            purpose: 'Adik',
-            frequency: '3 times a day',
-            time: '5:00 PM',
-            amount: '1',
-            expiration: '2025-10-20',
-          ),
-        );
-        provider.addMedicationEntry(
-          MedicationEntry(
-            med: 'BBC',
-            form: 'Powders',
-            purpose: 'Pacuntot',
-            frequency: '3 times a day',
-            time: '5:00 PM',
-            amount: '1',
-            expiration: '2025-10-20',
-          ),
-        );
-      }
-    });
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Shabu Liquid',
+    //         form: 'Drops',
+    //         purpose: 'Borks',
+    //         frequency: '3 times a day',
+    //         time: '5:00 PM',
+    //         amount: '1',
+    //         expiration: '2025-10-20',
+    //       ),
+    //     );
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Marijuana',
+    //         form: 'Inhaler',
+    //         purpose: 'Sabog',
+    //         frequency: '3 times a day',
+    //         time: '5:00 PM',
+    //         amount: '1',
+    //         expiration: '2025-10-20',
+    //       ),
+    //     );
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'Exstacy',
+    //         form: 'Powder',
+    //         purpose: 'Adik',
+    //         frequency: '3 times a day',
+    //         time: '5:00 PM',
+    //         amount: '1',
+    //         expiration: '2025-10-20',
+    //       ),
+    //     );
+    //     provider.addMedicationEntry(
+    //       MedicationEntry(
+    //         med: 'BBC',
+    //         form: 'Powders',
+    //         purpose: 'Pacuntot',
+    //         frequency: '3 times a day',
+    //         time: '5:00 PM',
+    //         amount: '1',
+    //         expiration: '2025-10-20',
+    //       ),
+    //     );
+    //   }
+    // });
   }
 
   @override
@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AddMedNamePage(),
+                      builder: (context) => const ReusableAddMedNamePage(),
                     ),
                   );
                 },

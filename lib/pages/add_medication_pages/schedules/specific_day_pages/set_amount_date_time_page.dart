@@ -6,16 +6,23 @@ import "package:provider/provider.dart";
 import "package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart";
 import "package:pill_buddy/pages/providers/medication_provider.dart";
 
-class OnceADayPage extends StatefulWidget {
-  const OnceADayPage({super.key});
+class SetAmountDateTimePage extends StatefulWidget {
+  const SetAmountDateTimePage({super.key});
 
   @override
-  State<OnceADayPage> createState() => _OnceADayPageState();
+  State<SetAmountDateTimePage> createState() => _SetAmountDateTimePage();
 }
 
-class _OnceADayPageState extends State<OnceADayPage> {
+class _SetAmountDateTimePage extends State<SetAmountDateTimePage> {
   final TextEditingController _doseController = TextEditingController();
   DateTime _selectedDateTime = DateTime.now();
+  DateTime _selectedDate = DateTime.now(); // Initialize with today's date
+  TimeOfDay _time = TimeOfDay.now(); // Default time set to current time
+
+  // Variables to check if all fields are filled
+  bool _isDoseFilled = false;
+  bool _isTimeFilled = false;
+  bool _isDateFilled = false;
 
   void _showInvalidInputDialog() {
     showDialog(
@@ -33,12 +40,43 @@ class _OnceADayPageState extends State<OnceADayPage> {
     );
   }
 
+  // Function to show Date Picker
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate, // Set the initial date
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked; // Update the selected date
+        _isDateFilled = true; // Set the date as filled
+      });
+    }
+  }
+
+  // Function to show Time Picker
+  Future<void> _selectTime(BuildContext context) async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _time, // Set the initial time
+    );
+    if (pickedTime != null && pickedTime != _time) {
+      setState(() {
+        _time = pickedTime; // Update the selected time
+        _isTimeFilled = true; // Set the time as filled
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MedicationProvider>(context);
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
     final medForm = Provider.of<MedicationProvider>(context).selectedForm;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    // final unit = Provider.of<MedicationProvider>(context).unitForForm;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,32 +118,92 @@ class _OnceADayPageState extends State<OnceADayPage> {
             ),
             const SizedBox(height: 24),
             FadeIn(
+              delay: const Duration(milliseconds: 300),
+              child: Row(
+                children: [
+                  const Text(
+                    "Take",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _doseController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: "Enter amount",
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _isDoseFilled = value
+                              .isNotEmpty; // Update state when dose input changes
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  //   Text(
+                  //  //   unit,
+                  //     style: const TextStyle(fontSize: 18),
+                  //   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            FadeIn(
               delay: const Duration(milliseconds: 400),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Time: ${TimeOfDay.fromDateTime(_selectedDateTime).format(context)}",
+                    "Time: ${_time.format(context)}",
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
-                  TimePickerSpinner(
-                    is24HourMode: false,
-                    normalTextStyle:
-                        const TextStyle(fontSize: 18, color: Colors.black54),
-                    highlightedTextStyle: TextStyle(
-                      fontSize: 22,
-                      color: primaryColor,
+                  GestureDetector(
+                    onTap: () => _selectTime(context), // Trigger time picker
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        "Selected Time: ${_time.format(context)}", // Display selected time
+                        style: const TextStyle(fontSize: 16),
+                      ),
                     ),
-                    spacing: 40,
-                    itemHeight: 40,
-                    isForce2Digits: true,
-                    time: _selectedDateTime,
-                    onTimeChange: (time) {
-                      setState(() {
-                        _selectedDateTime = time;
-                      });
-                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            FadeIn(
+              delay: const Duration(milliseconds: 500),
+              child: Row(
+                children: [
+                  const Text(
+                    "Select Date",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => _selectDate(context), // Trigger date picker
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        DateFormat('MMM d, yyyy')
+                            .format(_selectedDate), // Display selected date
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -121,11 +219,14 @@ class _OnceADayPageState extends State<OnceADayPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: _doseController.text.isNotEmpty
+                    backgroundColor: (_isDoseFilled &&
+                            _isTimeFilled &&
+                            _isDateFilled)
                         ? primaryColor
-                        : Colors.grey,
+                        : Colors
+                            .grey, // Button enabled only if all fields are filled
                   ),
-                  onPressed: _doseController.text.isNotEmpty
+                  onPressed: (_isDoseFilled && _isTimeFilled && _isDateFilled)
                       ? () {
                           provider.selectFrequency("Once a day");
                           provider.selectTime(

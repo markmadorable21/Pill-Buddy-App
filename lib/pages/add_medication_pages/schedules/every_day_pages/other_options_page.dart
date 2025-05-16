@@ -1,5 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_instructions_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/change_the_med_icon_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/set_treatment_duration_page.dart.dart';
@@ -17,6 +19,7 @@ class OtherOptionsPage extends StatefulWidget {
 
 class _HomePageState extends State<OtherOptionsPage> {
   bool changeIcon = false;
+  var logger = Logger();
   bool isPage1Done = false;
   bool isPage2Done = false;
   bool isPage3Done = false;
@@ -24,14 +27,22 @@ class _HomePageState extends State<OtherOptionsPage> {
 
   void saveMedicationData() {
     final provider = Provider.of<MedicationProvider>(context, listen: false);
-    print("Saving the following data:");
-    print("Name: ${provider.selectedMed}");
-    print("Form: ${provider.selectedForm}");
-    print("Purpose: ${provider.selectedPurpose}");
-    print("Frequency: ${provider.selectedFrequency}");
-    print("Time: ${provider.selectedTime}");
-    print("Amount: ${provider.selectedAmount}");
-    print("Expiration: ${provider.selectedExpiration}");
+    logger.e("Saving the following data:");
+    logger.e("Name: ${provider.selectedMed}");
+    logger.e("Form: ${provider.selectedForm}");
+    logger.e("Purpose: ${provider.selectedPurpose}");
+    logger.e("Frequency: ${provider.selectedFrequency}");
+
+    logger.e("Time: ${provider.selectedDate}");
+    logger.e("Time: ${provider.selectedTime}");
+    logger.e("Amount: ${provider.selectedAmount}");
+
+    logger.e("Amount: ${provider.selectedQuantity}");
+    logger.e("Expiration: ${provider.selectedExpiration}");
+
+    logger
+        .e("Current Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}");
+    logger.e("Selected Date: ${provider.selectedDate}");
 
     _showConfirmationDialog(provider);
   }
@@ -53,8 +64,11 @@ class _HomePageState extends State<OtherOptionsPage> {
             _buildConfirmationItem("Form", provider.selectedForm),
             _buildConfirmationItem("Purpose", provider.selectedPurpose),
             _buildConfirmationItem("Frequency", provider.selectedFrequency),
+            _buildConfirmationItem("Frequency",
+                provider.selectedDate?.toString() ?? "No date selected"),
             _buildConfirmationItem("Time", provider.selectedTime),
             _buildConfirmationItem("Amount", provider.selectedAmount),
+            _buildConfirmationItem("Quantity", provider.selectedQuantity),
             _buildConfirmationItem("Expiration", provider.selectedExpiration),
           ],
         ),
@@ -71,8 +85,10 @@ class _HomePageState extends State<OtherOptionsPage> {
                   form: provider.selectedForm,
                   purpose: provider.selectedPurpose,
                   frequency: provider.selectedFrequency,
+                  date: provider.selectedDate!,
                   time: provider.selectedTime,
                   amount: provider.selectedAmount,
+                  quantity: provider.selectedQuantity,
                   expiration: provider.selectedExpiration,
                 ),
               );

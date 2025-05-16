@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/web.dart';
+
+var logger = Logger();
 
 class MedicationEntry {
   final String med;
   final String form;
   final String purpose;
   final String frequency;
+  final DateTime date;
   final String time;
   final String amount;
+  final String quantity;
   final String expiration;
 
   MedicationEntry({
@@ -15,8 +20,10 @@ class MedicationEntry {
     required this.form,
     required this.purpose,
     required this.frequency,
+    required this.date,
     required this.time,
     required this.amount,
+    required this.quantity,
     required this.expiration,
   });
 }
@@ -27,8 +34,10 @@ class MedicationProvider with ChangeNotifier {
   String _selectedForm = '';
   String _selectedPurpose = '';
   String _selectedFrequency = '';
+  DateTime? _selectedDate;
   String _selectedTime = '';
   String _selectedAmount = '';
+  String _selectedQuantity = '';
   String _selectedExpiration = '';
   bool _addedMed = false;
   bool get addedMed => _addedMed;
@@ -50,8 +59,10 @@ class MedicationProvider with ChangeNotifier {
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
 
-  // Medication list
+  // Medication list for everyday, once a day
   List<MedicationEntry> _medList = [];
+
+  List<MedicationEntry> _medListSpecificDay = [];
 
   // Getters for user details
   String get inputtedEmail => _inputtedEmail;
@@ -71,10 +82,41 @@ class MedicationProvider with ChangeNotifier {
   String get selectedForm => _selectedForm;
   String get selectedPurpose => _selectedPurpose;
   String get selectedFrequency => _selectedFrequency;
+
+  DateTime? get selectedDate => _selectedDate;
   String get selectedTime => _selectedTime;
   String get selectedAmount => _selectedAmount;
+  String get selectedQuantity => _selectedQuantity;
   String get selectedExpiration => _selectedExpiration;
   List<MedicationEntry> get medList => _medList;
+  // List of schedule options
+  final List<String> _medFormOptions = [
+    "Every day",
+    "Every other day",
+    "Specific day",
+    "Specific days of the week",
+    "On a recurring cycle",
+    "Every X days",
+    "Every X weeks",
+    "Every X months",
+    "Only as needed",
+  ];
+
+  // Store the selected schedule (Default to the first option)
+  String _selectedSchedule = "Every day";
+
+  // Getter for medFormOptions
+  List<String> get medFormOptions => _medFormOptions;
+
+  // Getter for selected schedule
+  String get selectedSchedule => _selectedSchedule;
+  // Setter for selected schedule
+  void selectSchedule(String schedule) {
+    if (_medFormOptions.contains(schedule)) {
+      _selectedSchedule = schedule;
+      notifyListeners(); // Notify listeners to update the UI
+    }
+  }
 
   // Setters
   void setBirthDate(DateTime date) {
@@ -85,6 +127,17 @@ class MedicationProvider with ChangeNotifier {
   String get birthDateFormatted {
     if (_birthDate == null) return '';
     return DateFormat('MMM d, yyyy').format(_birthDate!);
+  }
+
+  String get formattedSelectedDate {
+    if (_selectedDate == null) return '';
+    return DateFormat('MMM d, yyyy').format(_birthDate!);
+  }
+
+  // Setter to update selected date
+  void selectDate(DateTime date) {
+    _selectedDate = date;
+    notifyListeners();
   }
 
   // Setter to update selectedOptions
@@ -175,6 +228,11 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void selectQuantity(String qty) {
+    _selectedQuantity = qty;
+    notifyListeners();
+  }
+
   void selectExpiration(String expirationDate) {
     _selectedExpiration = expirationDate;
     notifyListeners();
@@ -186,8 +244,12 @@ class MedicationProvider with ChangeNotifier {
   }
 
   void addMedicationEntry(MedicationEntry entry) {
-    _medList.add(entry);
-    _addedMed = true;
+    try {
+      _medList.add(entry);
+      _addedMed = true;
+    } catch (e) {
+      logger.e('Error adding medication: $e');
+    }
     notifyListeners();
   }
 
@@ -196,6 +258,8 @@ class MedicationProvider with ChangeNotifier {
     _selectedForm = '';
     _selectedPurpose = '';
     _selectedFrequency = '';
+
+    _selectedDate;
     _selectedTime = '';
     _selectedAmount = '';
     _selectedExpiration = '';
@@ -207,19 +271,37 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String get unitForForm {
+  String get amountForForm {
+    switch (_selectedForm) {
+      case 'Pill':
+        return 'g';
+      case 'Injection':
+      case 'Solution (Liquid)':
+        return 'mL';
+      case 'Drops':
+        return 'mL';
+      case 'Inhaler':
+        return 'canister(s)';
+      case 'Powder':
+        return 'g';
+      default:
+        return '';
+    }
+  }
+
+  String get quantityForForm {
     switch (_selectedForm) {
       case 'Pill':
         return 'pill(s)';
       case 'Injection':
       case 'Solution (Liquid)':
-        return 'mL';
+        return 'shot(s)';
       case 'Drops':
         return 'drop(s)';
       case 'Inhaler':
         return 'puff(s)';
       case 'Powder':
-        return 'g';
+        return 'scoop(s)';
       default:
         return '';
     }

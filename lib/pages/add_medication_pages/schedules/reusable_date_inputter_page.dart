@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/other_options_page.dart';
-import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:logger/logger.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
 
-class ExpirationPage extends StatefulWidget {
-  const ExpirationPage({super.key});
+class ReusableDateInputterPage extends StatefulWidget {
+  const ReusableDateInputterPage({super.key});
 
   @override
-  State<ExpirationPage> createState() => _MedicationExpirationPageState();
+  State<ReusableDateInputterPage> createState() =>
+      _ReusableDateInputterPageState();
 }
 
-class _MedicationExpirationPageState extends State<ExpirationPage> {
+class _ReusableDateInputterPageState extends State<ReusableDateInputterPage> {
   DateTime? _selectedDate;
+  final logger = Logger();
 
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -39,9 +41,8 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: primaryColor,
-        title: const Text("Expiration", style: TextStyle(color: Colors.white)),
+        title: const Text("Select Date", style: TextStyle(color: Colors.white)),
         elevation: 0,
-        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
@@ -65,7 +66,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
             FadeIn(
               delay: const Duration(milliseconds: 200),
               child: const Text(
-                "Select the expiration date of the medication",
+                "Select the date to take the medication",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
@@ -78,19 +79,22 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                   Text(
                     _selectedDate == null
                         ? "No date selected"
-                        : "Expiration Date: ${DateFormat('MMM d, yyyy').format(_selectedDate!)}",
+                        : "Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}",
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      provider.selectExpiration(
-                        _selectedDate != null
-                            ? DateFormat('MMM d, yyyy').format(_selectedDate!)
-                            : DateFormat('MMM d, yyyy').format(DateTime.now()),
-                      );
-
-                      _pickDate(context);
+                    onPressed: () async {
+                      await _pickDate(context);
+                      // After picking, update the provider with DateTime (not string)
+                      if (_selectedDate != null) {
+                        try {
+                          provider.selectDate(_selectedDate!);
+                          logger.i('Selected date: $_selectedDate');
+                        } catch (e) {
+                          logger.e('Error selecting date: $e');
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
@@ -101,7 +105,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                           horizontal: 24, vertical: 12),
                     ),
                     child: const Text(
-                      "Pick Expiration Date",
+                      "Pick Intake Date",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -116,15 +120,18 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                 child: ElevatedButton(
                   onPressed: _selectedDate != null
                       ? () {
-                          print(
-                              "Expiration Date: ${_selectedDate!.toIso8601String()}");
-                          // Navigate to next step or save date to provider
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const OtherOptionsPage(),
-                            ),
-                          );
+                          // Debug print
+                          logger.i('Proceeding with date: $_selectedDate');
+
+                          if (provider.selectedSchedule == "Specific day") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ReusableTimeInputterPage(),
+                              ),
+                            );
+                          }
                         }
                       : null,
                   style: ElevatedButton.styleFrom(

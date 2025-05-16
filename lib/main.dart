@@ -5,11 +5,19 @@ import 'package:pill_buddy/firebase_options.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_ph.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_add_new_caregiver_page.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_picker.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_med_form_amt_qty_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_date_inputter_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_day_pages/set_amount_date_time_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
+import 'package:pill_buddy/pages/main_pages/add_medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
+import 'package:pill_buddy/pages/providers/testmedprovider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
@@ -82,6 +90,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MedicationProvider()),
         ChangeNotifierProvider(create: (_) => AddressProvider()),
+        ChangeNotifierProvider(create: (_) => TestMedicationProvider()),
       ],
       child: const MyApp(),
     ),
@@ -132,7 +141,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: TestHomePage(),
+      home: MainPage(),
     );
   }
 }

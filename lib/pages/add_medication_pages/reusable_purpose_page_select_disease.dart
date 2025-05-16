@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/database/diseases_data.dart';
-import 'package:pill_buddy/pages/add_medication_pages/how_often_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_frequency_main_options_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 //import 'package:pill_buddy/pages/providers/purpose_provider.dart';
 import 'package:provider/provider.dart';
 
-class PurposePageSelectDisease extends StatefulWidget {
-  const PurposePageSelectDisease({super.key});
+class ReusablePurposePageSelectDisease extends StatefulWidget {
+  const ReusablePurposePageSelectDisease({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _AddMedPageState createState() => _AddMedPageState();
+  _ReusablePurposePageSelectDisease createState() =>
+      _ReusablePurposePageSelectDisease();
 }
 
-class _AddMedPageState extends State<PurposePageSelectDisease> {
+class _ReusablePurposePageSelectDisease
+    extends State<ReusablePurposePageSelectDisease> {
   final TextEditingController _diseaseController = TextEditingController();
   bool _isPurposeSelected = false;
 
@@ -90,7 +92,8 @@ class _AddMedPageState extends State<PurposePageSelectDisease> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const HowOftenPage()),
+                              builder: (context) =>
+                                  const ReusableFrequencyMainOptionsPage()),
                         );
                       }
                     : null,

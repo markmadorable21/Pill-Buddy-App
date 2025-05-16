@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/other_options_page.dart';
-import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/other_options_page.dart';
 
-class ExpirationPage extends StatefulWidget {
-  const ExpirationPage({super.key});
+class ReusableTimeInputterPage extends StatefulWidget {
+  const ReusableTimeInputterPage({super.key});
 
   @override
-  State<ExpirationPage> createState() => _MedicationExpirationPageState();
+  _ReusableTimeInputterPageState createState() =>
+      _ReusableTimeInputterPageState();
 }
 
-class _MedicationExpirationPageState extends State<ExpirationPage> {
-  DateTime? _selectedDate;
+class _ReusableTimeInputterPageState extends State<ReusableTimeInputterPage> {
+  TimeOfDay? _selectedTime;
 
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _pickTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
+      initialTime: _selectedTime ?? TimeOfDay.now(),
     );
 
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null && picked != _selectedTime) {
       setState(() {
-        _selectedDate = picked;
+        _selectedTime = picked;
       });
     }
   }
@@ -39,7 +38,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: primaryColor,
-        title: const Text("Expiration", style: TextStyle(color: Colors.white)),
+        title: const Text("Select Time", style: TextStyle(color: Colors.white)),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -57,15 +56,14 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
             const SizedBox(height: 40),
             Center(
               child: FadeInDown(
-                child:
-                    Icon(Icons.calendar_today, size: 80, color: primaryColor),
+                child: Icon(Icons.access_time, size: 80, color: primaryColor),
               ),
             ),
             const SizedBox(height: 20),
             FadeIn(
               delay: const Duration(milliseconds: 200),
               child: const Text(
-                "Select the expiration date of the medication",
+                "Select the time for the medication",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
@@ -76,21 +74,22 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
               child: Column(
                 children: [
                   Text(
-                    _selectedDate == null
-                        ? "No date selected"
-                        : "Expiration Date: ${DateFormat('MMM d, yyyy').format(_selectedDate!)}",
+                    _selectedTime == null
+                        ? "No time selected"
+                        : "Selected Time: ${_selectedTime!.format(context)}",
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      provider.selectExpiration(
-                        _selectedDate != null
-                            ? DateFormat('MMM d, yyyy').format(_selectedDate!)
-                            : DateFormat('MMM d, yyyy').format(DateTime.now()),
+                      provider.selectTime(
+                        _selectedTime != null
+                            ? DateFormat('h:mm a').format(DateTime(0, 0, 0,
+                                _selectedTime!.hour, _selectedTime!.minute))
+                            : DateFormat('h:mm a').format(DateTime.now()),
                       );
 
-                      _pickDate(context);
+                      _pickTime(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
@@ -101,7 +100,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                           horizontal: 24, vertical: 12),
                     ),
                     child: const Text(
-                      "Pick Expiration Date",
+                      "Pick Time",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -114,11 +113,11 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _selectedDate != null
+                  onPressed: _selectedTime != null
                       ? () {
                           print(
-                              "Expiration Date: ${_selectedDate!.toIso8601String()}");
-                          // Navigate to next step or save date to provider
+                              "Time selected: ${_selectedTime!.format(context)}");
+                          // Navigate to next step or save time to provider
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -129,7 +128,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        _selectedDate != null ? primaryColor : Colors.grey,
+                        _selectedTime != null ? primaryColor : Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

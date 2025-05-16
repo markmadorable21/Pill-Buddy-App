@@ -1,0 +1,17 @@
+name DONE
+form, amount, quantity DONE
+purpose/disease DONE
+freq: 
+if everyday and once a day, time
+if specific day, date and time
+
+separate date input
+separate time input
+separate expiration input
+
+add appbar, add medication button to testhomepage from homepage
+connect 
+
+make the date into date? to pass null, this is applicable for everyday freq
+
+calalinmaryann28@gmail.com

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'add_medication_page.dart'; // Import the page for adding medication
+import 'package:provider/provider.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
 
 class TestHomePage extends StatefulWidget {
   const TestHomePage({super.key});
@@ -12,71 +14,82 @@ class TestHomePage extends StatefulWidget {
 
 class _TestHomePageState extends State<TestHomePage> {
   DateTime _currentDate = DateTime.now();
-  List<Map<String, dynamic>> _medications = [];
-
-  // To track the offset for the infinite scroll
   ScrollController _scrollController = ScrollController();
-
-  // Method to add medication to the list
-  void _addMedication(String medName, TimeOfDay time, DateTime date,
-      String medForm, String purpose, String amount, DateTime expirationDate) {
-    setState(() {
-      // Ensure that we are formatting the DateTime correctly
-      DateTime medicationDate = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-
-      // For expiration date, we can use the same approach to store it correctly
-      DateTime medicationExpirationDate = DateTime(
-        expirationDate.year,
-        expirationDate.month,
-        expirationDate.day,
-      );
-
-      // Add medication with DateTime objects
-      _medications.add({
-        'name': medName,
-        'time': time.format(context), // Time formatted for display
-        'date': DateFormat('yyyy-MM-dd')
-            .format(medicationDate), // Format date for display
-        'medForm': medForm,
-        'purpose': purpose,
-        'amount': amount,
-        'expirationDate': DateFormat('yyyy-MM-dd')
-            .format(medicationExpirationDate), // Expiration formatted
-        'medicationDate':
-            medicationDate, // Store the full DateTime for comparison
-        'medicationExpirationDate':
-            medicationExpirationDate, // Store expiration DateTime
-      });
-    });
-
-    // Sorting the medications by the medicationDate (including both date and time)
-    _medications.sort((a, b) {
-      DateTime dateTimeA = a['medicationDate'];
-      DateTime dateTimeB = b['medicationDate'];
-
-      // Compare the full DateTime values
-      return dateTimeA.compareTo(dateTimeB);
-    });
+  @override
+  void initState() {
+    super.initState();
+    _addMockData();
   }
 
+// Mock data insertion
+  void _addMockData() {
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
+    if (provider.medList.isEmpty) {
+      provider.addMedicationEntry(
+        MedicationEntry(
+          med: 'Paracetamol',
+          time: '08:00 AM',
+          amount: '1 tablet',
+          form: 'Tablet',
+          purpose: 'Fever reducer',
+          date: DateTime.now(),
+          expiration: '2025-12-01',
+          frequency: '',
+          quantity: '2',
+        ),
+      );
+      provider.addMedicationEntry(
+        MedicationEntry(
+          med: 'Vitamin C',
+          time: '12:00 PM',
+          amount: '2 tablets',
+          form: 'Tablet',
+          purpose: 'Immunity Boost',
+          date: DateTime.now(),
+          expiration: '2025-11-15',
+          frequency: '',
+          quantity: '',
+        ),
+      );
+      provider.addMedicationEntry(
+        MedicationEntry(
+          med: 'Cough Syrup',
+          time: '06:00 PM',
+          amount: '10ml',
+          form: 'Liquid',
+          purpose: 'Cough relief',
+          date: DateTime.now().subtract(const Duration(days: 1)), // For testing
+          expiration: '2025-09-10', frequency: '', quantity: '',
+        ),
+      );
+
+      // DAILY mock
+      provider.addMedicationEntry(
+        MedicationEntry(
+          quantity: '',
+          med: 'Multivitamin',
+          time: '07:00 AM',
+          amount: '1 tablet',
+          form: 'Tablet',
+          purpose: 'Daily supplement',
+          date: DateTime.now(), // starting “date” – ignored in filter
+          expiration: '2026-01-01',
+          frequency: 'Everyday', // NEW
+        ),
+      );
+    }
+  }
+
+  // Method to go to today's date in the calendar
   void _goToToday() {
     setState(() {
       _currentDate = DateTime.now();
     });
 
-    // Calculate the index of the current day
     int indexOfToday = DateTime.now().difference(DateTime.now()).inDays + 577;
 
-    // Scroll to the position of today's date
     _scrollController.animateTo(
-      (indexOfToday *
-          50.0), // Multiply by 60 for the width of each day container
+      (indexOfToday * 50.0),
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
@@ -84,13 +97,15 @@ class _TestHomePageState extends State<TestHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationProvider>(context);
     final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Medication Schedule")),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
+            const SizedBox(height: 5),
             // Calendar Row (Horizontal List of Days with Day Numbers)
             Container(
               height: 60,
@@ -117,7 +132,6 @@ class _TestHomePageState extends State<TestHomePage> {
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        // border: Border.all(color: Colors.black),
                         color: isSelected
                             ? primaryColor
                             : primaryColor.withOpacity(0.1),
@@ -154,24 +168,25 @@ class _TestHomePageState extends State<TestHomePage> {
                 ),
                 const SizedBox(width: 60),
                 Text(DateFormat('MMM d, yyyy').format(_currentDate),
-                    style: const TextStyle(fontSize: 16)
-                    //Theme.of(context).textTheme.bodySmall?.fontSize),
-                    ),
+                    style: const TextStyle(fontSize: 16)),
               ],
             ),
             // List of Medications
             Expanded(
               child: ListView.builder(
-                itemCount: _medications.length,
+                itemCount: provider.medList.length,
                 itemBuilder: (context, index) {
-                  if (_medications[index]['date'] ==
-                      DateFormat('yyyy-MM-dd').format(_currentDate)) {
+                  // Compare the date using DateTime objects
+
+                  if (DateFormat('MMM-dd-yyyy').format(_currentDate) ==
+                      DateFormat('MMM-dd-yyyy')
+                          .format(provider.medList[index].date)) {
                     return Card(
                       margin: const EdgeInsets.symmetric(
                           vertical: 6, horizontal: 8),
                       child: ListTile(
                         title: Text(
-                          _medications[index]['time'],
+                          provider.medList[index].time,
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18),
                         ),
@@ -193,7 +208,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '${_medications[index]['name']}',
+                                        '${provider.medList[index].med}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16),
@@ -201,7 +216,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                         maxLines: 1,
                                       ),
                                       Text(
-                                        'take ${_medications[index]['amount']} ${_medications[index]['medForm']}',
+                                        'Take ${provider.medList[index].amount} ${provider.medList[index].form}',
                                       ),
                                     ],
                                   ),
@@ -260,10 +275,8 @@ class _TestHomePageState extends State<TestHomePage> {
                                             color: Colors.redAccent),
                                         onPressed: () {
                                           // Delete the medication when the delete icon is pressed
-                                          setState(() {
-                                            _medications.removeAt(
-                                                index); // Remove the medication from the list
-                                          });
+                                          provider.removeMedicationEntry(
+                                              provider.medList[index]);
                                           Navigator.of(context)
                                               .pop(); // Close the dialog
                                         },
@@ -287,7 +300,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                       const SizedBox(height: 5),
                                       Align(
                                         child: Text(
-                                          _medications[index]['name'],
+                                          provider.medList[index].med,
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18),
@@ -300,7 +313,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           const Icon(Icons.calendar_today),
                                           const SizedBox(width: 10),
                                           Text(
-                                            'Set for ${_medications[index]['time']}, ${DateFormat('MMM d, yyyy').format(DateTime.parse(_medications[index]['date']))}',
+                                            'Set for ${provider.medList[index].time}, ${provider.medList[index].date}',
                                             style:
                                                 const TextStyle(fontSize: 15),
                                           )
@@ -313,7 +326,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           const Icon(Icons.format_size),
                                           const SizedBox(width: 10),
                                           Text(
-                                            'Amount: ${_medications[index]['amount']} | Form: ${_medications[index]['medForm']}',
+                                            'Amount: ${provider.medList[index].amount} | Form: ${provider.medList[index].form}',
                                             style:
                                                 const TextStyle(fontSize: 15),
                                           ),
@@ -325,7 +338,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           const Icon(LucideIcons.fileQuestion),
                                           const SizedBox(width: 10),
                                           Text(
-                                            'Purpose: ${_medications[index]['purpose']}',
+                                            'Purpose: ${provider.medList[index].purpose}',
                                             style:
                                                 const TextStyle(fontSize: 15),
                                           )
@@ -338,7 +351,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           const Icon(Icons.date_range),
                                           const SizedBox(width: 10),
                                           Text(
-                                            'Expire on ${DateFormat('MMM d, yyyy').format(DateTime.parse(_medications[index]['expirationDate']))}',
+                                            'Expire on ${provider.medList[index].expiration}',
                                             style:
                                                 const TextStyle(fontSize: 15),
                                           )
@@ -363,25 +376,40 @@ class _TestHomePageState extends State<TestHomePage> {
                       ),
                     );
                   } else {
-                    return Container();
+                    return const Text("Error bitch!");
                   }
                 },
               ),
             ),
-
             const SizedBox(height: 10),
-
             // Button to add medication
-            ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          AddMedicationPage(onAddMedication: _addMedication)),
-                );
-              },
-              child: const Text("Add Medication"),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+              child: SizedBox(
+                width: 350,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReusableAddMedNamePage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  child: const Text(
+                    "Add Medication",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

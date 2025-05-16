@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:pill_buddy/pages/add_medication_pages/med_form_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reusable_med_form_amt_qty_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import '../../database/medications_data.dart';
 
-class AddMedNamePage extends StatefulWidget {
-  const AddMedNamePage({super.key});
+class ReusableAddMedNamePage extends StatefulWidget {
+  const ReusableAddMedNamePage({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _AddMedPageState createState() => _AddMedPageState();
+  _ReusableAddMedNamePage createState() => _ReusableAddMedNamePage();
 }
 
-class _AddMedPageState extends State<AddMedNamePage> {
+class _ReusableAddMedNamePage extends State<ReusableAddMedNamePage> {
   final TextEditingController _medController = TextEditingController();
 
   bool _isMedSelected = false;
@@ -90,7 +90,8 @@ class _AddMedPageState extends State<AddMedNamePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const MedFormPage()),
+                              builder: (context) =>
+                                  const ReusableMedFormAmtQtyPage()),
                         );
                         // Proceed to next page or action
                       }

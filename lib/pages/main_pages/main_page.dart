@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
+import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/manage_page.dart';
@@ -24,7 +25,7 @@ class _MainPageState extends State<MainPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Widget> pages = const [
-    HomePage(),
+    TestHomePage(),
     TrackersPage(),
     MedicationPage(),
     ManagePage(),
