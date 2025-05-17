@@ -4,46 +4,39 @@ import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_instructions_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/change_the_med_icon_page.dart';
-import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/set_treatment_duration_page.dart.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_refill_reminder_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 
+/// Page for additional medication options before final save.
 class OtherOptionsPage extends StatefulWidget {
   const OtherOptionsPage({super.key});
 
   @override
-  State<OtherOptionsPage> createState() => _HomePageState();
+  State<OtherOptionsPage> createState() => _OtherOptionsPageState();
 }
 
-class _HomePageState extends State<OtherOptionsPage> {
-  bool changeIcon = false;
-  var logger = Logger();
+class _OtherOptionsPageState extends State<OtherOptionsPage> {
   bool isPage1Done = false;
   bool isPage2Done = false;
   bool isPage3Done = false;
   bool isPage4Done = false;
 
+  final _logger = Logger();
+
   void saveMedicationData() {
     final provider = Provider.of<MedicationProvider>(context, listen: false);
-    logger.e("Saving the following data:");
-    logger.e("Name: ${provider.selectedMed}");
-    logger.e("Form: ${provider.selectedForm}");
-    logger.e("Purpose: ${provider.selectedPurpose}");
-    logger.e("Frequency: ${provider.selectedFrequency}");
-
-    logger.e("Time: ${provider.selectedDate}");
-    logger.e("Time: ${provider.selectedTime}");
-    logger.e("Amount: ${provider.selectedAmount}");
-
-    logger.e("Amount: ${provider.selectedQuantity}");
-    logger.e("Expiration: ${provider.selectedExpiration}");
-
-    logger
-        .e("Current Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}");
-    logger.e("Selected Date: ${provider.selectedDate}");
-
+    _logger.i('Saving medication details:'
+        '\n Name: ${provider.selectedMed}'
+        '\n Form: ${provider.selectedForm}'
+        '\n Purpose: ${provider.selectedPurpose}'
+        '\n Frequency: ${provider.selectedFrequency}'
+        '\n Date: ${provider.selectedDate}'
+        '\n Time: ${provider.selectedTime}'
+        '\n Amount: ${provider.selectedAmount}'
+        '\n Quantity: ${provider.selectedQuantity}'
+        '\n Expiration: ${provider.selectedExpiration}');
     _showConfirmationDialog(provider);
   }
 
@@ -53,60 +46,83 @@ class _HomePageState extends State<OtherOptionsPage> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          "Confirm Medication Details",
+          'Confirm Medication Details',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildConfirmationItem("Name", provider.selectedMed),
-            _buildConfirmationItem("Form", provider.selectedForm),
-            _buildConfirmationItem("Purpose", provider.selectedPurpose),
-            _buildConfirmationItem("Frequency", provider.selectedFrequency),
-            _buildConfirmationItem("Frequency",
-                provider.selectedDate?.toString() ?? "No date selected"),
-            _buildConfirmationItem("Time", provider.selectedTime),
-            _buildConfirmationItem("Amount", provider.selectedAmount),
-            _buildConfirmationItem("Quantity", provider.selectedQuantity),
-            _buildConfirmationItem("Expiration", provider.selectedExpiration),
+            _buildConditionalConfirmationItem('Name', provider.selectedMed),
+            _buildConditionalConfirmationItem('Form', provider.selectedForm),
+            _buildConditionalConfirmationItem(
+                'Purpose', provider.selectedPurpose),
+            _buildConditionalConfirmationItem(
+                'Frequency', provider.selectedFrequency),
+            if (provider.selectedDate != null)
+              _buildConditionalConfirmationItem(
+                'Start Date',
+                DateFormat('MMM d, yyyy').format(provider.selectedDate!),
+              ),
+
+            _buildConditionalConfirmationItem('Time', provider.selectedTime),
+            _buildConditionalConfirmationItem(
+                'Amount', provider.selectedAmount),
+            _buildConditionalConfirmationItem(
+                'Quantity', provider.selectedQuantity),
+            _buildConditionalConfirmationItem(
+                'Expiration', provider.selectedExpiration),
+            _buildConditionalConfirmationItem(
+                'Times per day', provider.selectedTimesPerDay),
+            // For example, if you have multiple times per day stored as List<TimeOfDay>
+            if (provider.selectedTimes.isNotEmpty)
+              _buildConditionalConfirmationItem(
+                'Times',
+                provider.selectedTimes.map((t) => t.format(context)).join(', '),
+              ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
-              provider.addMedicationEntry(
-                MedicationEntry(
-                  med: provider.selectedMed,
-                  form: provider.selectedForm,
-                  purpose: provider.selectedPurpose,
-                  frequency: provider.selectedFrequency,
-                  date: provider.selectedDate!,
-                  time: provider.selectedTime,
-                  amount: provider.selectedAmount,
-                  quantity: provider.selectedQuantity,
-                  expiration: provider.selectedExpiration,
-                ),
+              final entry = MedicationEntry(
+                med: provider.selectedMed,
+                form: provider.selectedForm,
+                purpose: provider.selectedPurpose,
+                frequency: provider.selectedFrequency,
+                date: provider.selectedFrequency == 'Every day' ||
+                        provider.selectedFrequency == 'Once a day' ||
+                        provider.selectedFrequency == 'Twice a day' ||
+                        provider.selectedFrequency == '3 times a day' ||
+                        provider.selectedFrequency == 'More than 3 times a day'
+                    ? DateTime.now()
+                    : provider.selectedDate,
+                time: provider.selectedTime,
+                amount: provider.selectedAmount,
+                quantity: provider.selectedQuantity,
+                expiration: provider.selectedExpiration,
+                selectedTimes: provider.selectedTimes,
               );
-              provider.addMedMarkSave(true);
+              provider.addMedicationEntry(entry);
+              _logger.e('Medications now in list: ${provider.medList.length}');
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Medication saved successfully!")),
+                const SnackBar(content: Text('Medication saved successfully!')),
               );
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const MainPage()),
+                MaterialPageRoute(builder: (_) => const MainPage()),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
             ),
             child: const Text(
-              "Confirm",
+              'Confirm',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -115,50 +131,55 @@ class _HomePageState extends State<OtherOptionsPage> {
     );
   }
 
-  Widget _buildConfirmationItem(String label, String value) {
+  Widget _buildConditionalConfirmationItem(String label, String? value) {
+    if (value == null || value.isEmpty) {
+      return const SizedBox.shrink(); // Empty widget, no space
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "$label: ",
+            '$label: ',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Expanded(
-            child: Text(value.isNotEmpty ? value : "Not set"),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 
-  void _navigateAndMarkDone(BuildContext context, int pageNumber) async {
-    // Navigate to respective page
-    if (pageNumber == 1) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SetTreatmentDurationPage()),
-      );
-      setState(() => isPage1Done = true);
-    } else if (pageNumber == 2) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AddRefillReminderPage()),
-      );
-      setState(() => isPage2Done = true);
-    } else if (pageNumber == 3) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AddInstructionsPage()),
-      );
-      setState(() => isPage3Done = true);
-    } else if (pageNumber == 4) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ChangeTheMedIconPage()),
-      );
-      setState(() => isPage4Done = true);
+  Future<void> _navigateAndMarkDone(int pageNumber) async {
+    switch (pageNumber) {
+      case 1:
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const SetTreatmentDurationPage()),
+        // );
+        setState(() => isPage1Done = true);
+        break;
+      case 2:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddRefillReminderPage()),
+        );
+        setState(() => isPage2Done = true);
+        break;
+      case 3:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddInstructionsPage()),
+        );
+        setState(() => isPage3Done = true);
+        break;
+      case 4:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChangeTheMedIconPage()),
+        );
+        setState(() => isPage4Done = true);
+        break;
     }
   }
 
@@ -169,63 +190,54 @@ class _HomePageState extends State<OtherOptionsPage> {
     return Scaffold(
       appBar: AppBar(
         title:
-            const Text("Other Options", style: TextStyle(color: Colors.white)),
+            const Text('Other Options', style: TextStyle(color: Colors.white)),
         toolbarHeight: 70,
-        elevation: 0,
-        scrolledUnderElevation: 0,
         backgroundColor: primaryColor,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
             const SizedBox(height: 20),
-            Center(
-              child: FadeIn(
-                duration: const Duration(milliseconds: 500),
-                child:
-                    Icon(Icons.medical_services, size: 80, color: primaryColor),
-              ),
+            FadeIn(
+              duration: const Duration(milliseconds: 500),
+              child:
+                  Icon(Icons.medical_services, size: 80, color: primaryColor),
             ),
             const SizedBox(height: 20),
-            Center(
-              child: FadeIn(
-                delay: const Duration(milliseconds: 200),
-                duration: const Duration(milliseconds: 500),
-                child: const Text(
-                  "Almost done. Would you like to:",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
+            FadeIn(
+              delay: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 500),
+              child: const Text(
+                'Almost done. Would you like to:',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 24),
             _buildActionTile(
-              context: context,
               label: 'Set treatment duration?',
               isDone: isPage1Done,
-              onTap: () => _navigateAndMarkDone(context, 1),
+              onTap: () => _navigateAndMarkDone(1),
             ),
             const SizedBox(height: 13),
             _buildActionTile(
-              context: context,
               label: 'Add refill reminder',
               isDone: isPage2Done,
-              onTap: () => _navigateAndMarkDone(context, 2),
+              onTap: () => _navigateAndMarkDone(2),
             ),
             const SizedBox(height: 13),
             _buildActionTile(
-              context: context,
               label: 'Add instructions?',
               isDone: isPage3Done,
-              onTap: () => _navigateAndMarkDone(context, 3),
+              onTap: () => _navigateAndMarkDone(3),
             ),
             const SizedBox(height: 13),
             _buildActionTile(
-              context: context,
               label: 'Change the med icon?',
               isDone: isPage4Done,
-              onTap: () => _navigateAndMarkDone(context, 4),
+              onTap: () => _navigateAndMarkDone(4),
             ),
             const Spacer(),
             SlideInUp(
@@ -234,17 +246,15 @@ class _HomePageState extends State<OtherOptionsPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: primaryColor,
                   ),
-                  onPressed: () {
-                    saveMedicationData();
-                  },
+                  onPressed: saveMedicationData,
                   child: const Text(
-                    "Save",
+                    'Save',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -260,13 +270,11 @@ class _HomePageState extends State<OtherOptionsPage> {
   }
 
   Widget _buildActionTile({
-    required BuildContext context,
     required String label,
     required bool isDone,
     required VoidCallback onTap,
   }) {
     final primaryColor = Theme.of(context).colorScheme.primary;
-
     return GestureDetector(
       onTap: isDone ? null : onTap,
       child: Container(
@@ -274,7 +282,7 @@ class _HomePageState extends State<OtherOptionsPage> {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: isDone ? Colors.grey[300] : primaryColor.withOpacity(0.1),
+          color: isDone ? Colors.grey[300] : primaryColor.withAlpha(25),
           border: Border.all(color: isDone ? Colors.grey : primaryColor),
         ),
         child: Row(
@@ -283,11 +291,9 @@ class _HomePageState extends State<OtherOptionsPage> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                color: isDone ? Colors.grey : Colors.black,
-              ),
+                  fontSize: 16, color: isDone ? Colors.grey : Colors.black),
             ),
-            if (isDone) const Icon(Icons.check_circle, color: Colors.green)
+            if (isDone) const Icon(Icons.check_circle, color: Colors.green),
           ],
         ),
       ),

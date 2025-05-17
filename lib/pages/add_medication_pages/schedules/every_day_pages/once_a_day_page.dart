@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:animate_do/animate_do.dart";
 import "package:intl/intl.dart";
 import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart";
 import "package:provider/provider.dart";
 import "package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart";
 import "package:pill_buddy/pages/providers/medication_provider.dart";
@@ -117,36 +118,38 @@ class _OnceADayPageState extends State<OnceADayPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: _doseController.text.isNotEmpty
-                        ? primaryColor
-                        : Colors.grey,
-                  ),
-                  onPressed: _doseController.text.isNotEmpty
-                      ? () {
-                          provider.selectFrequency("Once a day");
-                          provider.selectTime(
-                              DateFormat('hh:mm a').format(_selectedDateTime));
-                          provider.selectAmount(_doseController.text);
-                          final input = double.tryParse(_doseController.text);
-                          if (input == null || input <= 0) {
-                            _showInvalidInputDialog(); //invalid input
-                          } else {
-                            print('Form: $medForm');
-                            print(
-                                'Time selected: ${_selectedDateTime.toIso8601String()}');
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ExpirationPage(),
-                              ),
-                            );
-                          }
-                        }
-                      : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: //_doseController.text.isNotEmpty
+                          primaryColor
+                      //  : Colors.grey,
+                      ),
+                  onPressed: () {
+                    context
+                        .read<MedicationProvider>()
+                        .selectDate(DateTime.now());
+                    provider.selectFrequency("Once a day");
+                    provider.selectTime(
+                        DateFormat('hh:mm a').format(_selectedDateTime));
+                    provider.selectAmount(_doseController.text);
+                    final input = double.tryParse(_doseController.text);
+                    // if (input == null || input <= 0) {
+                    //   _showInvalidInputDialog(); //invalid input
+                    // } else {
+                    print('Form: $medForm');
+                    print(
+                        'Time selected: ${_selectedDateTime.toIso8601String()}');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReusableTimeInputterPage(),
+                      ),
+                    );
+                  }
+                  //   }
+                  ,
                   child: const Text(
                     "Next",
                     style: TextStyle(

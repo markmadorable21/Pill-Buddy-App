@@ -8,9 +8,12 @@ import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_p
 import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_med_form_amt_qty_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/every_x_days_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/recurring_cycle_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_date_inputter_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_day_pages/set_amount_date_time_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_days_of_week_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/main_pages/add_medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';

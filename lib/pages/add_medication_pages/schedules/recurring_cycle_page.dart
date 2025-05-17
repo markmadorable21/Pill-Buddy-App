@@ -1,168 +1,53 @@
-import "package:animate_do/animate_do.dart";
-import "package:flutter/material.dart";
-import "package:pill_buddy/pages/providers/medication_provider.dart";
-import "package:provider/provider.dart";
+// lib/pages/add_medication_pages/schedules/recurring_cycle_page.dart
+import 'package:flutter/material.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart';
+import 'package:provider/provider.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
 
-class EveryDayPage extends StatefulWidget {
-  const EveryDayPage({super.key});
-
+class RecurringCyclePage extends StatefulWidget {
+  const RecurringCyclePage({super.key});
   @override
-  State<EveryDayPage> createState() => _HowOftenPageState();
+  _RecurringCyclePageState createState() => _RecurringCyclePageState();
 }
 
-class _HowOftenPageState extends State<EveryDayPage> {
-  String? selectedSchedEveryday;
-
+class _RecurringCyclePageState extends State<RecurringCyclePage> {
+  final _controller = TextEditingController();
   @override
-  Widget build(BuildContext context) {
-    final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final List<String> medFormOptions = [
-      "Once a day",
-      "Twice a day",
-      "3 times a day",
-      "More than 3 times a day",
-      "Every X hours",
-    ];
-
+  Widget build(BuildContext c) {
+    final primary = Theme.of(c).colorScheme.primary;
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 70,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(selectedMed, style: const TextStyle(color: Colors.white)),
-        elevation: 0,
-        scrolledUnderElevation: 0, // Prevents graying effect when scrolling
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
+          title: const Text('Recurring Cycle'), backgroundColor: primary),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20), // Top spacing
-
-            // Icon (Static)
-            Center(
-              child: FadeIn(
-                duration: const Duration(milliseconds: 500),
-                child:
-                    Icon(Icons.medical_services, size: 80, color: primaryColor),
+            TextField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Cycle length (days)',
+                border: OutlineInputBorder(),
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Title (Static)
-            Center(
-              child: FadeIn(
-                delay: const Duration(milliseconds: 200),
-                duration: const Duration(milliseconds: 500),
-                child: const Text(
-                  "How often do you take it?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Scrollable Med Form Options
-            Expanded(
-              child: ListView.builder(
-                itemCount: medFormOptions.length,
-                itemBuilder: (context, index) {
-                  final medForm = medFormOptions[index];
-                  final isSelected = selectedSchedEveryday == medForm;
-
-                  return SlideInUp(
-                    delay: Duration(milliseconds: 100 + (index * 50)),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedSchedEveryday = medForm;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 16),
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: isSelected ? primaryColor : Colors.grey),
-                          color: isSelected
-                              ? primaryColor.withOpacity(0.1)
-                              : Colors.transparent,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              medForm,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: isSelected ? primaryColor : Colors.black,
-                              ),
-                            ),
-                            if (isSelected)
-                              Icon(Icons.check_circle,
-                                  color:
-                                      primaryColor), // Checkmark for selected option
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 20), // Space before button
-
-            // Next Button
-            SlideInUp(
-              duration: const Duration(milliseconds: 400),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: selectedSchedEveryday != null
-                        ? primaryColor
-                        : Colors.grey,
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                final v = int.tryParse(_controller.text);
+                if (v != null && v > 0) {
+                  context.read<MedicationProvider>().selectCycleLength(v);
+                  Navigator.pop(context);
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ExpirationPage(),
                   ),
-                  onPressed: selectedSchedEveryday != null
-                      ? () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) =>
-                          //           const PurposePageSelectDisease()),
-                          // );
-                        }
-                      : null,
-                  child: const Text(
-                    "Next",
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
+                );
+              },
+              child: const Text('Done'),
+            )
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -121,7 +122,7 @@ class _ReusableTimeInputterPageState extends State<ReusableTimeInputterPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const OtherOptionsPage(),
+                              builder: (context) => const ExpirationPage(),
                             ),
                           );
                         }

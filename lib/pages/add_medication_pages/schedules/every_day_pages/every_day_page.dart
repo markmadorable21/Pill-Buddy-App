@@ -1,5 +1,6 @@
 import "package:animate_do/animate_do.dart";
 import "package:flutter/material.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart";
 import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart";
 import "package:pill_buddy/pages/providers/medication_provider.dart";
 import "package:provider/provider.dart";
@@ -23,7 +24,6 @@ class _HowOftenPageState extends State<EveryDayPage> {
       "Twice a day",
       "3 times a day",
       "More than 3 times a day",
-      "Every X hours",
     ];
 
     return Scaffold(
@@ -147,7 +147,7 @@ class _HowOftenPageState extends State<EveryDayPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const OnceADayPage()),
+                                builder: (context) => const ExpirationPage()),
                           );
                         }
                       : null,

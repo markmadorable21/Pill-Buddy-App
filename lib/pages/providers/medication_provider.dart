@@ -8,28 +8,84 @@ class MedicationEntry {
   final String med;
   final String form;
   final String purpose;
-  final String frequency;
-  final DateTime date;
+  final String frequency; // e.g. "Every day", "Specific days of the week", etc.
+  final DateTime? date; // start or one-off date
   final String time;
   final String amount;
   final String quantity;
   final String expiration;
+
+  // Optional extras for complex schedules
+  final DateTime? specificDate;
+  final List<int>? weekDays;
+  final int? intervalDays;
+  final int? cycleLength;
+  final List<TimeOfDay>? selectedTimes;
 
   MedicationEntry({
     required this.med,
     required this.form,
     required this.purpose,
     required this.frequency,
-    required this.date,
+    this.date,
     required this.time,
     required this.amount,
     required this.quantity,
     required this.expiration,
+    this.specificDate,
+    this.weekDays,
+    this.intervalDays,
+    this.cycleLength,
+    this.selectedTimes,
   });
+
+  /// Returns true if this entry should appear on [target].
+  bool isScheduledOn(DateTime target) {
+    if (date == null) {
+      // No date means always scheduled (e.g., Every day)
+      if (frequency == 'Every day') return true;
+      // else fallback or decide what fits your app logic
+      return false;
+    }
+    final daysSinceStart = target.difference(date!).inDays;
+    switch (frequency) {
+      case 'Every day':
+      case 'Once a day':
+      case 'Twice a day':
+      case '3 times a day':
+      case 'More than 3 times a day':
+        //"Twice a day",
+        // "3 times a day",
+        // "More than 3 times a day",
+        return true;
+      case 'Every other day':
+        return daysSinceStart >= 0 && daysSinceStart % 2 == 0;
+      case 'Specific day':
+        return specificDate != null &&
+            DateFormat('yyyy-MM-dd').format(specificDate!) ==
+                DateFormat('yyyy-MM-dd').format(target);
+      case 'Specific days of the week':
+        return weekDays != null && weekDays!.contains(target.weekday);
+      case 'Every X days':
+        return intervalDays != null &&
+            daysSinceStart >= 0 &&
+            daysSinceStart % intervalDays! == 0;
+      case 'On a recurring cycle':
+        return cycleLength != null &&
+            daysSinceStart >= 0 &&
+            daysSinceStart % cycleLength! == 0;
+      default:
+        // fallback to one-off on [date]
+        return DateFormat('yyyy-MM-dd').format(date!) ==
+            DateFormat('yyyy-MM-dd').format(target);
+    }
+  }
 }
 
 class MedicationProvider with ChangeNotifier {
   // Temporary selected values
+  List<TimeOfDay> _selectedTimes = [];
+  List<TimeOfDay> get selectedTimes => _selectedTimes;
   String _selectedMed = '';
   String _selectedForm = '';
   String _selectedPurpose = '';
@@ -60,9 +116,7 @@ class MedicationProvider with ChangeNotifier {
   Set<String> _selectedOptions = {};
 
   // Medication list for everyday, once a day
-  List<MedicationEntry> _medList = [];
-
-  List<MedicationEntry> _medListSpecificDay = [];
+  final List<MedicationEntry> _medList = [];
 
   // Getters for user details
   String get inputtedEmail => _inputtedEmail;
@@ -88,7 +142,7 @@ class MedicationProvider with ChangeNotifier {
   String get selectedAmount => _selectedAmount;
   String get selectedQuantity => _selectedQuantity;
   String get selectedExpiration => _selectedExpiration;
-  List<MedicationEntry> get medList => _medList;
+  List<MedicationEntry> get medList => List.unmodifiable(_medList);
   // List of schedule options
   final List<String> _medFormOptions = [
     "Every day",
@@ -97,9 +151,6 @@ class MedicationProvider with ChangeNotifier {
     "Specific days of the week",
     "On a recurring cycle",
     "Every X days",
-    "Every X weeks",
-    "Every X months",
-    "Only as needed",
   ];
 
   // Store the selected schedule (Default to the first option)
@@ -246,23 +297,14 @@ class MedicationProvider with ChangeNotifier {
   void addMedicationEntry(MedicationEntry entry) {
     try {
       _medList.add(entry);
-      _addedMed = true;
     } catch (e) {
       logger.e('Error adding medication: $e');
     }
     notifyListeners();
   }
 
-  void clearSelectedValues() {
-    _selectedMed = '';
-    _selectedForm = '';
-    _selectedPurpose = '';
-    _selectedFrequency = '';
-
-    _selectedDate;
-    _selectedTime = '';
-    _selectedAmount = '';
-    _selectedExpiration = '';
+  void clearAll() {
+    _medList.clear();
     notifyListeners();
   }
 
@@ -305,5 +347,43 @@ class MedicationProvider with ChangeNotifier {
       default:
         return '';
     }
+  }
+
+  // ★ New fields for advanced schedules:
+  List<int> _selectedWeekDays = []; // 1=Mon…7=Sun
+  int? _selectedIntervalDays; // for “Every X days”
+  int? _selectedCycleLength; // for “On a recurring cycle”
+
+  // ★ Getters:
+  List<int> get selectedWeekDays => _selectedWeekDays;
+  int? get selectedIntervalDays => _selectedIntervalDays;
+  int? get selectedCycleLength => _selectedCycleLength;
+
+  // ★ Setters:
+  void selectWeekDays(List<int> days) {
+    _selectedWeekDays = days;
+    notifyListeners();
+  }
+
+  void selectIntervalDays(int days) {
+    _selectedIntervalDays = days;
+    notifyListeners();
+  }
+
+  void selectCycleLength(int length) {
+    _selectedCycleLength = length;
+    notifyListeners();
+  }
+
+  String? _selectedTimesPerDay;
+  String? get selectedTimesPerDay => _selectedTimesPerDay;
+  void setSelectedTimesPerDay(String? times) {
+    _selectedTimesPerDay = times;
+    notifyListeners();
+  }
+
+  void setSelectedTimes(List<TimeOfDay> times) {
+    _selectedTimes = times;
+    notifyListeners();
   }
 }

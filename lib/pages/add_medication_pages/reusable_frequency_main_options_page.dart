@@ -1,7 +1,13 @@
 import "package:animate_do/animate_do.dart";
 import "package:flutter/material.dart";
+import "package:pill_buddy/pages/add_medication_pages/multi_time_input_page.dart";
 import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/every_day_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/expiration_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/every_x_days_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/recurring_cycle_page.dart";
 import "package:pill_buddy/pages/add_medication_pages/schedules/reusable_date_inputter_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/schedules/specific_days_of_week_page.dart";
+import "package:pill_buddy/pages/add_medication_pages/times_per_day_page.dart";
 import "package:pill_buddy/pages/providers/medication_provider.dart";
 import "package:provider/provider.dart";
 
@@ -30,9 +36,6 @@ class _ReusableFrequencyMainOptionsPage
       "Specific days of the week",
       "On a recurring cycle",
       "Every X days",
-      "Every X weeks",
-      "Every X months",
-      "Only as needed",
     ];
 
     return Scaffold(
@@ -151,30 +154,106 @@ class _ReusableFrequencyMainOptionsPage
                         selectedSched != null ? primaryColor : Colors.grey,
                   ),
                   onPressed: selectedSched != null
-                      ? () {
-                          if (selectedSched == "Every day") {
-                            provider.selectSchedule(selectedSched!);
+                      ? () async {
+                          final provider = context.read<MedicationProvider>();
+                          provider.selectSchedule(selectedSched!);
+
+                          if (selectedSched == "Specific day") {
+                            // Skip time selection, navigate directly to date input
+                            provider.setSelectedTimesPerDay('');
+                            provider.setSelectedTimes([]);
+
                             Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const EveryDayPage()));
-                          } else if (selectedSched == "Every other day") {
-                          } else if (selectedSched ==
-                              "Specific days of the week") {
-                            provider.selectSchedule(selectedSched!);
-                          } else if (selectedSched == "Specific day") {
-                            provider.selectSchedule(selectedSched!);
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ReusableDateInputterPage()));
-                          } else if (selectedSched == "On a recurring cycle") {
-                          } else if (selectedSched == "Every X days") {
-                          } else if (selectedSched == "Every X weeks") {
-                          } else if (selectedSched == "Every X months") {
-                          } else {}
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ReusableDateInputterPage()),
+                            );
+                            return;
+                          }
+
+                          // For other frequencies, ask for times per day first
+                          final timesPerDay = await Navigator.push<String>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TimesPerDayPage(
+                                  frequencyType: selectedSched!),
+                            ),
+                          );
+
+                          if (timesPerDay != null) {
+                            provider.setSelectedTimesPerDay(timesPerDay);
+
+                            final timesCount = {
+                              "Once a day": 1,
+                              "Twice a day": 2,
+                              "3 times a day": 3,
+                              "More than 3 times a day": 4,
+                            }[timesPerDay]!;
+
+                            final selectedTimes =
+                                await Navigator.push<List<TimeOfDay?>>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MultiTimeInputPage(
+                                    numberOfTimes: timesCount),
+                              ),
+                            );
+
+                            if (selectedTimes != null) {
+                              final nonNullableTimes =
+                                  selectedTimes.whereType<TimeOfDay>().toList();
+                              provider.setSelectedTimes(nonNullableTimes);
+
+                              // Navigate to next page based on frequency
+                              if (selectedSched == "Every day") {
+                                provider.selectFrequency(selectedSched!);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ExpirationPage()));
+                              } else if (selectedSched ==
+                                  "Specific days of the week") {
+                                provider.selectFrequency(selectedSched!);
+
+                                provider.selectDate(DateTime.now());
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const SpecificDaysPage()));
+                              } else if (selectedSched ==
+                                  "On a recurring cycle") {
+                                provider.selectFrequency(selectedSched!);
+
+                                provider.selectDate(DateTime.now());
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const RecurringCyclePage()));
+                              } else if (selectedSched == "Every other day") {
+                                provider.selectFrequency(selectedSched!);
+
+                                provider.selectDate(DateTime.now());
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ExpirationPage()));
+                              } else {
+                                provider.selectFrequency(selectedSched!);
+
+                                provider.selectDate(DateTime.now());
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const EveryXDaysPage()));
+                              }
+                            }
+                          }
                         }
                       : null,
                   child: const Text(
