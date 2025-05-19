@@ -28,7 +28,6 @@ class _ReusableFrequencyMainOptionsPage
     final selectedMed = Provider.of<MedicationProvider>(context).selectedMed;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
-    final provider = Provider.of<MedicationProvider>(context);
     final List<String> medFormOptions = [
       "Every day",
       "Every other day",
@@ -161,6 +160,7 @@ class _ReusableFrequencyMainOptionsPage
                           if (selectedSched == "Specific day") {
                             // Skip time selection, navigate directly to date input
                             provider.setSelectedTimesPerDay('');
+
                             provider.setSelectedTimes([]);
 
                             Navigator.push(

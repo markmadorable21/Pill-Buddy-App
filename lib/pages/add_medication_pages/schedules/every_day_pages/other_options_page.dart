@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
@@ -8,6 +9,7 @@ import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 /// Page for additional medication options before final save.
 class OtherOptionsPage extends StatefulWidget {
@@ -24,20 +26,107 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
   bool isPage4Done = false;
 
   final _logger = Logger();
+  bool _isLoading = false;
+  Future<void> uploadMedicationToDoor(
+    BuildContext context,
+    MedicationEntry med,
+    int doorIndex,
+  ) async {
+    final dbRef = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+    ).ref();
 
-  void saveMedicationData() {
+    final doorKey = doorIndex == 0 ? 'door1' : 'door2';
+
+    try {
+      final timesperday = med.selectedTimesPerDay ?? '1';
+      final timesList = med.selectedTimes ?? [];
+
+      String? times1, times2, times3, times4;
+
+      if (timesperday == '1' || timesperday == 'Once a day') {
+        times1 = timesList.isNotEmpty ? timesList[0].format(context) : null;
+        times2 = '';
+        times3 = '';
+        times4 = '';
+      } else if (timesperday == '2' || timesperday == 'Twice a day') {
+        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
+        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
+        times3 = '';
+        times4 = '';
+      } else if (timesperday == '3' || timesperday == '3 times a day') {
+        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
+        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
+        times3 = timesList.length > 2 ? timesList[2].format(context) : null;
+        times4 = '';
+      } else {
+        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
+        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
+        times3 = timesList.length > 2 ? timesList[2].format(context) : null;
+        times4 = timesList.length > 3 ? timesList[3].format(context) : null;
+      }
+
+      await dbRef.child('medications').child(doorKey).set({
+        'added': true,
+        'timesperday': timesperday,
+        'timesleft': 1,
+        'times1': times1,
+        'times2': times2,
+        'times3': times3,
+        'times4': times4,
+        'clicked': false,
+      });
+
+      Logger().i('Successfully uploaded medication to $doorKey');
+    } catch (e, stacktrace) {
+      Logger().e('Failed to upload medication to $doorKey',
+          error: e, stackTrace: stacktrace);
+      rethrow;
+    }
+  }
+
+  Future<void> saveMedicationData() async {
     final provider = Provider.of<MedicationProvider>(context, listen: false);
-    _logger.i('Saving medication details:'
-        '\n Name: ${provider.selectedMed}'
-        '\n Form: ${provider.selectedForm}'
-        '\n Purpose: ${provider.selectedPurpose}'
-        '\n Frequency: ${provider.selectedFrequency}'
-        '\n Date: ${provider.selectedDate}'
-        '\n Time: ${provider.selectedTime}'
-        '\n Amount: ${provider.selectedAmount}'
-        '\n Quantity: ${provider.selectedQuantity}'
-        '\n Expiration: ${provider.selectedExpiration}');
-    _showConfirmationDialog(provider);
+
+    if (provider.medList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No medications to save')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    try {
+      await uploadMedicationToDoor(context, provider.medList[0], 0);
+
+      if (provider.medList.length > 1) {
+        await uploadMedicationToDoor(context, provider.medList[1], 1);
+      }
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Medications saved successfully!')),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving medications: $e')),
+      );
+    }
   }
 
   void _showConfirmationDialog(MedicationProvider provider) {
@@ -108,6 +197,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 selectedTimes: provider.selectedTimes,
               );
               provider.addMedicationEntry(entry);
+              saveMedicationData();
               _logger.e('Medications now in list: ${provider.medList.length}');
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +342,11 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: saveMedicationData,
+                  onPressed: () {
+                    _showConfirmationDialog(
+                      Provider.of<MedicationProvider>(context, listen: false),
+                    );
+                  },
                   child: const Text(
                     'Save',
                     style: TextStyle(
@@ -263,6 +357,13 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 ),
               ),
             ),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
           ],
         ),
       ),

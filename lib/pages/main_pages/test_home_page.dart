@@ -324,16 +324,20 @@ class _TestHomePageState extends State<TestHomePage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const ReusableAddMedNamePage()),
-                  ),
+                  onPressed: provider.canAddMoreMeds
+                      ? () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ReusableAddMedNamePage()),
+                          )
+                      : null, // disabled button if limit reached
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
+                    backgroundColor:
+                        provider.canAddMoreMeds ? primaryColor : Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: const Text(
                     "Add Medication",

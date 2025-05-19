@@ -22,6 +22,8 @@ class MedicationEntry {
   final int? cycleLength;
   final List<TimeOfDay>? selectedTimes;
 
+  final String? selectedTimesPerDay;
+
   MedicationEntry({
     required this.med,
     required this.form,
@@ -32,6 +34,7 @@ class MedicationEntry {
     required this.amount,
     required this.quantity,
     required this.expiration,
+    this.selectedTimesPerDay,
     this.specificDate,
     this.weekDays,
     this.intervalDays,
@@ -83,6 +86,22 @@ class MedicationEntry {
 }
 
 class MedicationProvider with ChangeNotifier {
+  MedicationEntry buildMedicationEntry() {
+    return MedicationEntry(
+      med: selectedMed,
+      form: selectedForm,
+      purpose: selectedPurpose,
+      frequency: selectedFrequency,
+      date: selectedDate,
+      time: selectedTime,
+      amount: selectedAmount,
+      quantity: selectedQuantity,
+      expiration: selectedExpiration,
+      selectedTimes: selectedTimes, // if you added this for multiple times
+      // include other optional fields as needed
+    );
+  }
+
   // Temporary selected values
   List<TimeOfDay> _selectedTimes = [];
   List<TimeOfDay> get selectedTimes => _selectedTimes;
@@ -294,12 +313,19 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Limit meds to 2 entries
+  static const int maxMedications = 2;
+
+  int get currentMedCount => _medList.length;
+
+  bool get canAddMoreMeds => _medList.length < maxMedications;
+
   void addMedicationEntry(MedicationEntry entry) {
-    try {
-      _medList.add(entry);
-    } catch (e) {
-      logger.e('Error adding medication: $e');
+    if (_medList.length >= maxMedications) {
+      logger.e('Maximum medication entries reached.');
+      return;
     }
+    _medList.add(entry);
     notifyListeners();
   }
 
