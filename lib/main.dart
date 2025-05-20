@@ -6,6 +6,7 @@ import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_p
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_add_new_caregiver_page.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_picker.dart';
 import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reminders_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_med_form_amt_qty_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart';

@@ -16,7 +16,7 @@ class _ReusableMedFormAmtQtyPage extends State<ReusableMedFormAmtQtyPage> {
   String? selectedMedForm;
   TextEditingController _quantityController = TextEditingController();
   TextEditingController _amountController = TextEditingController();
-
+  final _totalQtyController = TextEditingController();
   final _formKey = GlobalKey<FormState>(); // GlobalKey for form validation
   var logger = Logger();
 
@@ -203,8 +203,27 @@ class _ReusableMedFormAmtQtyPage extends State<ReusableMedFormAmtQtyPage> {
                   ],
                 ),
               ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _totalQtyController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Total quantity on hand",
+                  hintText: "Enter total qty (e.g. 30)",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return 'Total quantity is required';
+                  }
+                  if (int.tryParse(v) == null) {
+                    return 'Must be a number';
+                  }
+                  return null;
+                },
+              ),
 
-              Spacer(),
+              const Spacer(),
 
               // Next Button
               SlideInUp(
@@ -225,6 +244,7 @@ class _ReusableMedFormAmtQtyPage extends State<ReusableMedFormAmtQtyPage> {
                         provider.selectAmount(_amountController.text);
                         provider.selectQuantity(_quantityController.text);
                         provider.selectForm(selectedMedForm!);
+                        provider.selectTotalQty(_totalQtyController.text);
                         logger.e('Medication Form: ${provider.selectedForm}');
                         logger
                             .e('Medication Amount: ${provider.selectedAmount}');

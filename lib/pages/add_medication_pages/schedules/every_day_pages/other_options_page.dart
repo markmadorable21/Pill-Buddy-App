@@ -57,6 +57,8 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         'added': true,
         'timesperday': timesPerDay,
         'timesleft': 1,
+        'totalQty':
+            Provider.of<MedicationProvider>(context, listen: false).totalQty,
         'times1': fmt(0),
         'times2': fmt(1),
         'times3': fmt(2),
@@ -148,6 +150,9 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 'Amount', provider.selectedAmount),
             _buildConditionalConfirmationItem(
                 'Quantity', provider.selectedQuantity),
+
+            _buildConditionalConfirmationItem(
+                'Total Quantity', provider.totalQty),
             _buildConditionalConfirmationItem(
                 'Expiration', provider.selectedExpiration),
             _buildConditionalConfirmationItem(

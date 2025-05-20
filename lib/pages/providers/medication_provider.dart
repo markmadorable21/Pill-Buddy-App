@@ -364,6 +364,13 @@ class MedicationProvider with ChangeNotifier {
     }
   }
 
+  String? _totalQty;
+  String? get totalQty => _totalQty;
+  void selectTotalQty(String qty) {
+    _totalQty = qty;
+    notifyListeners();
+  }
+
   // ★ New fields for advanced schedules:
   List<int> _selectedWeekDays = []; // 1=Mon…7=Sun
   int? _selectedIntervalDays; // for “Every X days”

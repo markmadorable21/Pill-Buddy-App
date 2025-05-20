@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pill_buddy/pages/add_medication_pages/reminders_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
@@ -27,7 +28,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> pages = const [
     TestHomePage(),
     TrackersPage(),
-    MedicationPage(),
+    RemindersPage(),
     ManagePage(),
   ];
 

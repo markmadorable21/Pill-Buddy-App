@@ -83,11 +83,11 @@ class _TestHomePageState extends State<TestHomePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Medication Schedule")),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
+            const SizedBox(height: 8),
             // Calendar strip (horizontal scroll)
             SizedBox(
               height: 60,
