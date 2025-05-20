@@ -5,6 +5,7 @@ import 'package:pill_buddy/firebase_options.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_ph.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_add_new_caregiver_page.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test_country_state_picker.dart';
+import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_med_form_amt_qty_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/once_a_day_page.dart';
@@ -20,6 +21,7 @@ import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
+import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:pill_buddy/pages/providers/testmedprovider.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
@@ -94,6 +96,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => MedicationProvider()),
         ChangeNotifierProvider(create: (_) => AddressProvider()),
         ChangeNotifierProvider(create: (_) => TestMedicationProvider()),
+        ChangeNotifierProvider(create: (_) => DoorStatusProvider()),
       ],
       child: const MyApp(),
     ),

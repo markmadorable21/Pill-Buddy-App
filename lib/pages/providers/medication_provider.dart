@@ -21,8 +21,7 @@ class MedicationEntry {
   final int? intervalDays;
   final int? cycleLength;
   final List<TimeOfDay>? selectedTimes;
-
-  final String? selectedTimesPerDay;
+  final int doorIndex;
 
   MedicationEntry({
     required this.med,
@@ -34,12 +33,12 @@ class MedicationEntry {
     required this.amount,
     required this.quantity,
     required this.expiration,
-    this.selectedTimesPerDay,
     this.specificDate,
     this.weekDays,
     this.intervalDays,
     this.cycleLength,
     this.selectedTimes,
+    required this.doorIndex,
   });
 
   /// Returns true if this entry should appear on [target].
@@ -99,6 +98,7 @@ class MedicationProvider with ChangeNotifier {
       expiration: selectedExpiration,
       selectedTimes: selectedTimes, // if you added this for multiple times
       // include other optional fields as needed
+      doorIndex: selectedDoorIndex!,
     );
   }
 
@@ -313,18 +313,7 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Limit meds to 2 entries
-  static const int maxMedications = 2;
-
-  int get currentMedCount => _medList.length;
-
-  bool get canAddMoreMeds => _medList.length < maxMedications;
-
   void addMedicationEntry(MedicationEntry entry) {
-    if (_medList.length >= maxMedications) {
-      logger.e('Maximum medication entries reached.');
-      return;
-    }
     _medList.add(entry);
     notifyListeners();
   }
@@ -410,6 +399,14 @@ class MedicationProvider with ChangeNotifier {
 
   void setSelectedTimes(List<TimeOfDay> times) {
     _selectedTimes = times;
+    notifyListeners();
+  }
+
+  int? _selectedDoorIndex;
+  int? get selectedDoorIndex => _selectedDoorIndex;
+
+  void setSelectedDoorIndex(int index) {
+    _selectedDoorIndex = index;
     notifyListeners();
   }
 }

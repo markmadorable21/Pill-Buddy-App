@@ -1,6 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
+import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
@@ -30,6 +34,21 @@ class _TestHomePageState extends State<TestHomePage> {
     super.initState();
     // Uncomment if you want to add mock data on start
     // WidgetsBinding.instance.addPostFrameCallback((_) => _addMockData());
+  }
+
+  Future<void> deleteMedicationFromDoor(int doorIndex) async {
+    final doorKey = doorIndex == 0 ? 'door1' : 'door2';
+    final dbRef = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+    ).ref('medications/$doorKey');
+
+    // Use either remove() or update({'added': false})
+    await dbRef.remove();
+
+    //await dbRef.remove();
+    logger.e('Medication variable added set to false for door $doorKey');
   }
 
   void _goToToday() {
@@ -216,10 +235,39 @@ class _TestHomePageState extends State<TestHomePage> {
                                           IconButton(
                                             icon: const Icon(Icons.delete,
                                                 color: Colors.redAccent),
-                                            onPressed: () {
-                                              provider
-                                                  .removeMedicationEntry(med);
-                                              Navigator.of(context).pop();
+                                            onPressed: () async {
+                                              final provider = context
+                                                  .read<MedicationProvider>();
+
+                                              int doorIndex = med.doorIndex;
+
+                                              // Optionally show a loading indicator here if needed
+
+                                              try {
+                                                // Remove locally first
+
+                                                provider
+                                                    .removeMedicationEntry(med);
+
+                                                // Delete in Firebase
+                                                await deleteMedicationFromDoor(
+                                                    doorIndex);
+
+                                                logger.e(
+                                                    'Medication ${med.med} removed from Firebase door $doorIndex');
+                                                Navigator.of(context)
+                                                    .pop(); // Close dialog or page
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          'Medication deleted successfully')),
+                                                );
+                                              } catch (e) {
+                                                logger.e(
+                                                    'Failed to delete medication: $e');
+                                              }
                                             },
                                           ),
                                         ],
@@ -324,16 +372,13 @@ class _TestHomePageState extends State<TestHomePage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: provider.canAddMoreMeds
-                      ? () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ReusableAddMedNamePage()),
-                          )
-                      : null, // disabled button if limit reached
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const DoorSelectionPage()),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        provider.canAddMoreMeds ? primaryColor : Colors.grey,
+                    backgroundColor: primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

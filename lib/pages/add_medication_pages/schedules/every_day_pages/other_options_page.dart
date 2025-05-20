@@ -7,6 +7,7 @@ import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/change_the_med_icon_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_refill_reminder_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
+import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -27,68 +28,54 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
 
   final _logger = Logger();
   bool _isLoading = false;
+  String? _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return null;
+    return time.format(context);
+  }
+
   Future<void> uploadMedicationToDoor(
-    BuildContext context,
-    MedicationEntry med,
-    int doorIndex,
-  ) async {
+      BuildContext context, MedicationEntry med, int doorIndex) async {
+    final doorKey = doorIndex == 0 ? 'door1' : 'door2';
+
     final dbRef = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL:
           'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref();
-
-    final doorKey = doorIndex == 0 ? 'door1' : 'door2';
+    ).ref().child('medications').child(doorKey);
 
     try {
-      final timesperday = med.selectedTimesPerDay ?? '1';
+      final timesPerDay =
+          Provider.of<MedicationProvider>(context, listen: false)
+                  .selectedTimesPerDay ??
+              '${med.selectedTimes?.length ?? 1}';
       final timesList = med.selectedTimes ?? [];
 
-      String? times1, times2, times3, times4;
+      String? fmt(int idx) =>
+          idx < timesList.length ? _formatTimeOfDay(timesList[idx]) : '';
 
-      if (timesperday == '1' || timesperday == 'Once a day') {
-        times1 = timesList.isNotEmpty ? timesList[0].format(context) : null;
-        times2 = '';
-        times3 = '';
-        times4 = '';
-      } else if (timesperday == '2' || timesperday == 'Twice a day') {
-        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
-        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
-        times3 = '';
-        times4 = '';
-      } else if (timesperday == '3' || timesperday == '3 times a day') {
-        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
-        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
-        times3 = timesList.length > 2 ? timesList[2].format(context) : null;
-        times4 = '';
-      } else {
-        times1 = timesList.length > 0 ? timesList[0].format(context) : null;
-        times2 = timesList.length > 1 ? timesList[1].format(context) : null;
-        times3 = timesList.length > 2 ? timesList[2].format(context) : null;
-        times4 = timesList.length > 3 ? timesList[3].format(context) : null;
-      }
-
-      await dbRef.child('medications').child(doorKey).set({
+      final payload = {
         'added': true,
-        'timesperday': timesperday,
+        'timesperday': timesPerDay,
         'timesleft': 1,
-        'times1': times1,
-        'times2': times2,
-        'times3': times3,
-        'times4': times4,
+        'times1': fmt(0),
+        'times2': fmt(1),
+        'times3': fmt(2),
+        'times4': fmt(3),
         'clicked': false,
-      });
+      };
 
-      Logger().i('Successfully uploaded medication to $doorKey');
-    } catch (e, stacktrace) {
-      Logger().e('Failed to upload medication to $doorKey',
-          error: e, stackTrace: stacktrace);
+      await dbRef.set(payload);
+
+      _logger.i('✅ Uploaded medication to $doorKey: $payload');
+    } catch (e, st) {
+      _logger.e('⛔ Failed to upload medication to $doorKey',
+          error: e, stackTrace: st);
       rethrow;
     }
   }
 
   Future<void> saveMedicationData() async {
-    final provider = Provider.of<MedicationProvider>(context, listen: false);
+    final provider = context.read<MedicationProvider>();
 
     if (provider.medList.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,24 +84,26 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
       return;
     }
 
-    if (!mounted) return;
+    final doorIndex = provider.selectedDoorIndex ?? 0;
+
     setState(() => _isLoading = true);
 
     try {
-      await uploadMedicationToDoor(context, provider.medList[0], 0);
+      // Upload latest medication to the selected door
+      final latestMed = provider.medList.last;
 
-      if (provider.medList.length > 1) {
-        await uploadMedicationToDoor(context, provider.medList[1], 1);
-      }
+      await uploadMedicationToDoor(context, latestMed, doorIndex);
 
       if (!mounted) return;
+
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Medications saved successfully!')),
+        const SnackBar(content: Text('Medication saved successfully!')),
       );
 
       if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainPage()),
@@ -124,7 +113,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving medications: $e')),
+        SnackBar(content: Text('Error saving medication: $e')),
       );
     }
   }
@@ -195,10 +184,12 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 quantity: provider.selectedQuantity,
                 expiration: provider.selectedExpiration,
                 selectedTimes: provider.selectedTimes,
+                doorIndex: provider.selectedDoorIndex!,
               );
               provider.addMedicationEntry(entry);
               saveMedicationData();
               _logger.e('Medications now in list: ${provider.medList.length}');
+
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Medication saved successfully!')),
