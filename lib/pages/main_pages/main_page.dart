@@ -88,7 +88,7 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.update), label: 'Trackers'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.medication), label: 'Medication'),
+              icon: Icon(Icons.medication), label: 'Refill'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Manage'),
         ],
       ),

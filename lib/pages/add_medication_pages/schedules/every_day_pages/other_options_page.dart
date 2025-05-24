@@ -28,6 +28,22 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
 
   final _logger = Logger();
   bool _isLoading = false;
+
+  int _convertTimesPerDayToInt(String? label) {
+    switch (label?.toLowerCase()) {
+      case 'once a day':
+        return 1;
+      case 'twice a day':
+        return 2;
+      case '3 times a day':
+        return 3;
+      case 'more than 3 times a day':
+        return 4;
+      default:
+        return 1; // Default/fallback to 1 if not recognized
+    }
+  }
+
   String? _formatTimeOfDay(TimeOfDay? time) {
     if (time == null) return null;
     return time.format(context);
@@ -44,10 +60,14 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
     ).ref().child('medications').child(doorKey);
 
     try {
-      final timesPerDay =
+      // final timesPerDay =
+      //     Provider.of<MedicationProvider>(context, listen: false)
+      //             .selectedTimesPerDay ??
+      //         '${med.selectedTimes?.length ?? 1}';
+
+      final timesPerDay = _convertTimesPerDayToInt(
           Provider.of<MedicationProvider>(context, listen: false)
-                  .selectedTimesPerDay ??
-              '${med.selectedTimes?.length ?? 1}';
+              .selectedTimesPerDay);
       final timesList = med.selectedTimes ?? [];
 
       String? fmt(int idx) =>
@@ -56,7 +76,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
       final payload = {
         'added': true,
         'timesperday': timesPerDay,
-        'timesleft': 1,
+        'timesleft': timesPerDay,
         'totalQty':
             Provider.of<MedicationProvider>(context, listen: false).totalQty,
         'times1': fmt(0),
