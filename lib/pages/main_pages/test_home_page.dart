@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
+import 'package:pill_buddy/pages/main_pages/input_device_id_page.dart';
 import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -166,7 +167,7 @@ class _TestHomePageState extends State<TestHomePage> {
                               vertical: 6, horizontal: 8),
                           child: ListTile(
                             title: Text(
-                              time != null ? time.format(context) : med.time,
+                              time != null ? time.format(context) : med.time!,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 18),
                             ),
@@ -183,7 +184,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          med.med,
+                                          med.med!,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
@@ -289,7 +290,7 @@ class _TestHomePageState extends State<TestHomePage> {
                                           const SizedBox(height: 5),
                                           Center(
                                             child: Text(
-                                              med.med,
+                                              med.med!,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18,
@@ -375,7 +376,7 @@ class _TestHomePageState extends State<TestHomePage> {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const DoorSelectionPage()),
+                        builder: (_) => const InputDeviceIdPage()),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -13,20 +14,31 @@ class RemindersPage extends StatefulWidget {
 }
 
 class _RemindersPageState extends State<RemindersPage> {
-  final db = FirebaseDatabase.instanceFor(
-    app: Firebase.app(),
-    databaseURL:
-        'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-  );
-
-  late final DatabaseReference door1Ref;
-  late final DatabaseReference door2Ref;
+  late DatabaseReference door1Ref;
+  late DatabaseReference door2Ref;
 
   @override
   void initState() {
     super.initState();
-    door1Ref = db.ref('medications/door1');
-    door2Ref = db.ref('medications/door2');
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      // Handle user not logged in appropriately here
+      throw Exception('User not logged in');
+    }
+    final uid = user.uid;
+
+    door1Ref = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+    ).ref('users/$uid/medications/door1');
+
+    door2Ref = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+    ).ref('users/$uid/medications/door2');
   }
 
   Future<void> _launchInfo(String medName) async {
@@ -41,14 +53,14 @@ class _RemindersPageState extends State<RemindersPage> {
     final provider = Provider.of<MedicationProvider>(context, listen: false);
 
     final snapshot = await ref.get();
+    if (snapshot.value == null) return; // safety check
     final data = Map<String, dynamic>.from(snapshot.value as Map);
+
     final int current = int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
 
-    // Parse user input qty safely; fallback to 0 if not set or invalid
     final int userQty = int.tryParse(provider.selectedQuantity) ?? 0;
 
-    // Calculate new total after subtracting userQty (ensure no negative)
-    final int newTotal = (current - userQty) >= 0 ? (current - userQty) : 0;
+    final int newTotal = (current - userQty).clamp(0, current);
 
     await ref.update({
       'clicked': true,
@@ -79,7 +91,7 @@ class _RemindersPageState extends State<RemindersPage> {
     if (ok == true && int.tryParse(controller.text) != null) {
       final add = int.parse(controller.text);
       final snap = await ref.get();
-      final data = Map<String, dynamic>.from(snap.value as Map);
+      final data = Map<String, dynamic>.from(snap.value as Map? ?? {});
       final current = int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
       await ref.update({'totalQty': current + add});
     }
@@ -115,7 +127,7 @@ class _RemindersPageState extends State<RemindersPage> {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () => _updateClickedAndSubtract(ref),
-                  child: const Text('Test Click'),
+                  child: const Text('Take Dose'),
                 ),
               ],
             )
@@ -129,26 +141,18 @@ class _RemindersPageState extends State<RemindersPage> {
   Widget build(BuildContext context) {
     final provider = context.watch<MedicationProvider>();
 
-    // Example: get med names for door1 and door2 from your local medList or provider properties
-    // Here, I assume you store selected medication per door in provider or get from medList
-    String door1MedName = '';
-    String door2MedName = '';
+    String? door1MedName = 'No medication in Door 1';
+    String? door2MedName = 'No medication in Door 2';
 
-    // Find med name for door 1
     try {
       door1MedName =
           provider.medList.firstWhere((med) => med.doorIndex == 0).med;
-    } catch (_) {
-      door1MedName = 'No medication in Door 1';
-    }
+    } catch (_) {}
 
-    // Find med name for door 2
     try {
       door2MedName =
           provider.medList.firstWhere((med) => med.doorIndex == 1).med;
-    } catch (_) {
-      door2MedName = 'No medication in Door 2';
-    }
+    } catch (_) {}
 
     return Scaffold(
       body: ListView(
@@ -159,7 +163,7 @@ class _RemindersPageState extends State<RemindersPage> {
               final data = snap.data?.snapshot.value as Map? ?? {};
               final qty =
                   int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
-              return _buildDoorCard('Door 1', qty, door1MedName, door1Ref);
+              return _buildDoorCard('Door 1', qty, door1MedName!, door1Ref);
             },
           ),
           StreamBuilder<DatabaseEvent>(
@@ -168,7 +172,7 @@ class _RemindersPageState extends State<RemindersPage> {
               final data = snap.data?.snapshot.value as Map? ?? {};
               final qty =
                   int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
-              return _buildDoorCard('Door 2', qty, door2MedName, door2Ref);
+              return _buildDoorCard('Door 2', qty, door2MedName!, door2Ref);
             },
           ),
         ],

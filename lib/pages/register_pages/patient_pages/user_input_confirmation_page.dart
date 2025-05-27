@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
@@ -108,80 +109,80 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     }
   }
 
-  void _showAddCaregiverDialog() {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.person_add,
-                  size: 80, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 16),
-              const Text(
-                'Would you like to add a caregiver (family or relative) to help you monitor your medications?',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-                child: const Text('Add Existing User',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 16)),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const AddNewCaregiverFamilyPage()));
-                },
-                style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    backgroundColor: Colors.blue),
-                child: const Text('Add New Caregiver/Family',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 16)),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => const MainPage()));
-                },
-                style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    side: BorderSide(
-                        color: Theme.of(context).colorScheme.primary)),
-                child: Text('Later',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // void _showAddCaregiverDialog() {
+  //   showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (ctx) => Dialog(
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  //       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Icon(Icons.person_add,
+  //                 size: 80, color: Theme.of(context).colorScheme.primary),
+  //             const SizedBox(height: 16),
+  //             const Text(
+  //               'Would you like to add a caregiver (family or relative) to help you monitor your medications?',
+  //               textAlign: TextAlign.center,
+  //               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //             ),
+  //             const SizedBox(height: 32),pillp
+  //             ElevatedButton(
+  //               onPressed: () => Navigator.pop(ctx),
+  //               style: ElevatedButton.styleFrom(
+  //                 minimumSize: const Size.fromHeight(50),
+  //                 backgroundColor: Theme.of(context).colorScheme.primary,
+  //               ),
+  //               child: const Text('Add Existing User',
+  //                   style: TextStyle(
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.white,
+  //                       fontSize: 16)),
+  //             ),
+  //             const SizedBox(height: 12),
+  //             ElevatedButton(
+  //               onPressed: () {
+  //                 Navigator.pop(ctx);
+  //                 Navigator.pushReplacement(
+  //                     context,
+  //                     MaterialPageRoute(
+  //                         builder: (_) => const AddNewCaregiverFamilyPage()));
+  //               },
+  //               style: ElevatedButton.styleFrom(
+  //                   minimumSize: const Size.fromHeight(50),
+  //                   backgroundColor: Colors.blue),
+  //               child: const Text('Add New Caregiver/Family',
+  //                   style: TextStyle(
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.white,
+  //                       fontSize: 16)),
+  //             ),
+  //             const SizedBox(height: 12),
+  //             OutlinedButton(
+  //               onPressed: () {
+  //                 Navigator.pop(ctx);
+  //                 Navigator.pushReplacement(context,
+  //                     MaterialPageRoute(builder: (_) => const LoginPage()));
+  //               },
+  //               style: OutlinedButton.styleFrom(
+  //                   minimumSize: const Size.fromHeight(50),
+  //                   side: BorderSide(
+  //                       color: Theme.of(context).colorScheme.primary)),
+  //               child: Text('Later',
+  //                   style: TextStyle(
+  //                       fontSize: 16,
+  //                       color: Theme.of(context).colorScheme.primary,
+  //                       fontWeight: FontWeight.bold)),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +337,10 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                   } else {
                     logger.e('No user is currently signed in.');
                   }
-                  _showAddCaregiverDialog();
+                  // _showAddCaregiverDialog();
+
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()));
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,

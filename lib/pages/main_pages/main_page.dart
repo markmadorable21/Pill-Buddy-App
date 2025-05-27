@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reminders_page.dart';
+import 'package:pill_buddy/pages/main_pages/edit_profile_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/manage_page.dart';
+import 'package:pill_buddy/pages/main_pages/user_avatar_widget.dart';
+import 'package:pill_buddy/pages/main_pages/username_widget.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +37,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final avatarUrl = context.watch<MedicationProvider>().avatarUrl;
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -42,26 +44,16 @@ class _MainPageState extends State<MainPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         toolbarHeight: 70,
         automaticallyImplyLeading: false,
-        title: Row(
+        title: const Row(
           children: [
             // Leftmost: User Profile and Name
             Expanded(
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage: avatarUrl != null
-                        ? NetworkImage(avatarUrl)
-                        : const AssetImage("assets/images/user_photo1.png")
-                            as ImageProvider,
-                    radius: 22, // Adjust profile picture size
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    "Mark Madorable",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                  UserAvatarWidget(radius: 22),
+                  SizedBox(width: 10),
+                  UserNameWidget(
+                    textColor: Colors.white,
                   ),
                 ],
               ),
@@ -113,23 +105,15 @@ class _MainPageState extends State<MainPage> {
                           width: 3, // Border thickness
                         ),
                       ),
-                      child: CircleAvatar(
-                        backgroundImage: avatarUrl != null
-                            ? NetworkImage(avatarUrl)
-                            : const AssetImage("assets/images/user_photo1.png")
-                                as ImageProvider,
-                        radius: 30, // Profile picture size
-                      ),
+                      child: const UserAvatarWidget(radius: 22),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "  Mark Madorable",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                          const UserNameWidget(
+                            textColor: Colors.black,
                           ),
                           Align(
                             alignment: Alignment.centerLeft,
@@ -137,10 +121,24 @@ class _MainPageState extends State<MainPage> {
                               onPressed: () {
                                 // Add edit profile action
                               },
-                              child: const Text(
-                                "Edit Profile",
-                                style:
-                                    TextStyle(color: Colors.blue, fontSize: 14),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const EditProfilePage()),
+                                  );
+                                },
+                                child: const Text(
+                                  "Edit Profile",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue, // or your theme color
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

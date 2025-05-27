@@ -5,15 +5,16 @@ import 'package:logger/web.dart';
 var logger = Logger();
 
 class MedicationEntry {
-  final String med;
-  final String form;
-  final String purpose;
-  final String frequency; // e.g. "Every day", "Specific days of the week", etc.
+  final String? med;
+  final String? form;
+  final String? purpose;
+  final String?
+      frequency; // e.g. "Every day", "Specific days of the week", etc.
   final DateTime? date; // start or one-off date
-  final String time;
-  final String amount;
-  final String quantity;
-  final String expiration;
+  final String? time;
+  final String? amount;
+  final String? quantity;
+  final String? expiration;
 
   // Optional extras for complex schedules
   final DateTime? specificDate;
@@ -186,6 +187,14 @@ class MedicationProvider with ChangeNotifier {
       _selectedSchedule = schedule;
       notifyListeners(); // Notify listeners to update the UI
     }
+  }
+
+  String _deviceId = '';
+  String get deviceId => _deviceId;
+
+  void setDeviceId(String id) {
+    _deviceId = id;
+    notifyListeners();
   }
 
   // Setters

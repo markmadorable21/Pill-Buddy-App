@@ -11,63 +11,105 @@ class DoorSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final doorStatus = context.watch<DoorStatusProvider>();
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final provider = context.read<MedicationProvider>();
+    final deviceId = provider.deviceId;
+    final primaryColor = Theme.of(context).colorScheme.primary.withAlpha(120);
     var logger = Logger();
 
+    // Helper: get door status for current device and door index
+    bool doorAdded(int doorIndex) {
+      if (deviceId == 'PillBuddy1') {
+        return doorIndex == 0
+            ? doorStatus.pb1Door1Added
+            : doorStatus.pb1Door2Added;
+      } else if (deviceId == 'PillBuddy2') {
+        return doorIndex == 0
+            ? doorStatus.pb2Door1Added
+            : doorStatus.pb2Door2Added;
+      } else {
+        return false;
+      }
+    }
+
+    Widget buildDoorBox({
+      required String label,
+      required bool disabled,
+      required VoidCallback onTap,
+    }) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: disabled ? null : onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: double.infinity,
+            height: 160,
+            decoration: BoxDecoration(
+              color: disabled ? Colors.grey[300] : primaryColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: disabled ? Colors.grey : primaryColor, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                    color: Colors.black12, blurRadius: 5, spreadRadius: 2),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: disabled ? Colors.grey : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Door')),
+      appBar: AppBar(
+        toolbarHeight: 70,
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          'Select Door for $deviceId',
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 60),
-                backgroundColor: primaryColor,
-              ),
-              onPressed: doorStatus.door1Added
-                  ? null
-                  : () {
-                      final provider = context.read<MedicationProvider>();
-                      provider.setSelectedDoorIndex(0); // for Door 1
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const ReusableAddMedNamePage()),
-                      );
-
-                      logger.e('Door 1 selected');
-                    },
-              child: const Text(
-                'Door 1',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+            buildDoorBox(
+              label: 'Door 1',
+              disabled: doorAdded(0),
+              onTap: () {
+                provider.setSelectedDoorIndex(0);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ReusableAddMedNamePage()),
+                );
+                logger.i('$deviceId Door 1 selected');
+              },
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 60),
-                backgroundColor: primaryColor,
-              ),
-              onPressed: doorStatus.door2Added
-                  ? null
-                  : () {
-                      final provider = context.read<MedicationProvider>();
-                      provider.setSelectedDoorIndex(1); // for Door 2
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const ReusableAddMedNamePage()),
-                      );
-                      logger.e('Door 2 selected');
-                    },
-              child: const Text(
-                'Door 2',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+            buildDoorBox(
+              label: 'Door 2',
+              disabled: doorAdded(1),
+              onTap: () {
+                provider.setSelectedDoorIndex(1);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ReusableAddMedNamePage()),
+                );
+                logger.i('$deviceId Door 2 selected');
+              },
             ),
           ],
         ),

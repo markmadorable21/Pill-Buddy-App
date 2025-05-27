@@ -1,4 +1,6 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +31,74 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
   final _logger = Logger();
   bool _isLoading = false;
 
+  Future<void> uploadMedicationToFirestore(
+      BuildContext context, MedicationEntry med, int doorIndex) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('No authenticated user found');
+
+    final doorKey = doorIndex == 0 ? 'Door1' : 'Door2';
+
+    // Reference medications collection, doc = user UID
+    final docRef =
+        FirebaseFirestore.instance.collection('medications').doc(user.uid);
+
+    // Prepare times as 24h decimal strings (e.g. 13.55)
+    final timesList = med.selectedTimes ?? [];
+    String fmt(int idx) {
+      if (idx >= timesList.length) {
+        return ''; // Return empty string if timesList is smaller than idx
+      }
+      final t = timesList[idx];
+      final hour = t.hour;
+      final minute = t.minute;
+      final asDecimal = hour + (minute / 60);
+      return asDecimal.toStringAsFixed(2);
+    }
+
+    // Creating the data to upload with null checks
+    final data = {
+      doorKey: {
+        'added': true,
+        'med': med.med ?? 'Unknown Medication', // Use default if null
+        'form': med.form ?? 'Unknown Form', // Use default if null
+        'purpose': med.purpose ?? 'No Purpose', // Use default if null
+        'frequency': med.frequency ?? 0, // Default to 0 if null
+
+        'time': med.time ?? 'No Time Set', // Default if null
+        'amount': med.amount ?? 0, // Default to 0 if null
+        'quantity': med.quantity ?? 0, // Default to 0 if null
+        'date': (med.date is DateTime)
+            ? (med.date as DateTime).toIso8601String()
+            : 'No Date', // Check type and then call toIso8601String()
+        'expiration': (med.expiration is DateTime)
+            ? (med.expiration as DateTime).toIso8601String()
+            : 'No Expiration', // Same for expiration
+
+        'timesperday': _convertTimesPerDayToInt(
+            Provider.of<MedicationProvider>(context, listen: false)
+                .selectedTimesPerDay),
+        'intake': _convertTimesPerDayToInt(
+            Provider.of<MedicationProvider>(context, listen: false)
+                .selectedTimesPerDay),
+        'time1': fmt(0),
+        'time2': fmt(1),
+        'time3': fmt(2),
+        'time4': fmt(3),
+        'clicked': false,
+      }
+    };
+
+    try {
+      // Merge updates with existing doc so other door’s data is preserved
+      await docRef.set(data, SetOptions(merge: true));
+      _logger.i('Medication uploaded to Firestore: $data');
+    } catch (e, st) {
+      _logger.e('Failed to upload medication to Firestore',
+          error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   int _convertTimesPerDayToInt(String? label) {
     switch (label?.toLowerCase()) {
       case 'once a day':
@@ -44,53 +114,69 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
     }
   }
 
-  String? _formatTimeOfDay(TimeOfDay? time) {
-    if (time == null) return null;
-    return time.format(context);
-  }
+  // String? _formatTimeOfDay(TimeOfDay? time) {
+  //   if (time == null) return null;
+  //   return time.format(context);
+  // }
 
   Future<void> uploadMedicationToDoor(
       BuildContext context, MedicationEntry med, int doorIndex) async {
-    final doorKey = doorIndex == 0 ? 'door1' : 'door2';
+    // Get device ID from provider
+    final deviceId =
+        Provider.of<MedicationProvider>(context, listen: false).deviceId;
+    if (deviceId.isEmpty) {
+      _logger.e("Device ID is not set. Cannot upload medication.");
+      throw Exception('Device ID not set');
+    }
 
-    final dbRef = FirebaseDatabase.instanceFor(
+    final doorKey = doorIndex == 0 ? 'Door1' : 'Door2';
+
+    final dbRoot = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL:
           'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref().child('medications').child(doorKey);
+    ).ref().child(deviceId);
 
     try {
-      // final timesPerDay =
-      //     Provider.of<MedicationProvider>(context, listen: false)
-      //             .selectedTimesPerDay ??
-      //         '${med.selectedTimes?.length ?? 1}';
-
       final timesPerDay = _convertTimesPerDayToInt(
           Provider.of<MedicationProvider>(context, listen: false)
               .selectedTimesPerDay);
       final timesList = med.selectedTimes ?? [];
 
-      String? fmt(int idx) =>
-          idx < timesList.length ? _formatTimeOfDay(timesList[idx]) : '';
+      String? fmt(int idx) {
+        if (idx >= timesList.length) return '';
+        final t = timesList[idx];
+        // Convert to decimal: e.g. 1:33 PM → 13.55
+        final hour = t.hour;
+        final minute = t.minute;
+        final asDecimal = hour + (minute / 60);
+        // Round to 2 decimals as a string for DB upload
+        return asDecimal.toStringAsFixed(2);
+      }
 
-      final payload = {
+      final doorPayload = {
         'added': true,
         'timesperday': timesPerDay,
-        'timesleft': timesPerDay,
+        'intake': timesPerDay,
         'totalQty':
             Provider.of<MedicationProvider>(context, listen: false).totalQty,
-        'times1': fmt(0),
-        'times2': fmt(1),
-        'times3': fmt(2),
-        'times4': fmt(3),
+        'time1': fmt(0),
+        'time2': fmt(1),
+        'time3': fmt(2),
+        'time4': fmt(3),
         'clicked': false,
       };
 
-      await dbRef.set(payload);
+      // Set medication door data
+      await dbRoot.child(doorKey).set(doorPayload);
 
-      _logger.i('✅ Uploaded medication to $doorKey: $payload');
+      // Set temp and hrate with number value (can be dynamic, here static sample values)
+      await dbRoot.child('temp').set(36.5); // Example temperature
+      await dbRoot.child('hrate').set(77); // Example heart rate
+
+      _logger.i('✅ Uploaded to $deviceId/$doorKey (med), temp, hrate');
     } catch (e, st) {
-      _logger.e('⛔ Failed to upload medication to $doorKey',
+      _logger.e('⛔ Failed to upload medication or vital signs',
           error: e, stackTrace: st);
       rethrow;
     }
@@ -107,33 +193,35 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
     }
 
     final doorIndex = provider.selectedDoorIndex ?? 0;
-
-    setState(() => _isLoading = true);
+    final latestMed = provider.medList.last;
 
     try {
-      // Upload latest medication to the selected door
-      final latestMed = provider.medList.last;
-
+      // Upload to Firebase Realtime Database (existing method)
       await uploadMedicationToDoor(context, latestMed, doorIndex);
 
-      if (!mounted) return;
+      try {
+        // Upload to Firestore (new method with instanceFor)
+        await uploadMedicationToFirestore(context, latestMed, doorIndex);
+      } catch (e) {
+        logger.e('Error: $e');
+      }
 
-      setState(() => _isLoading = false);
+      // Ensure widget is still mounted before calling context-dependent methods
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Medication saved successfully!')),
       );
 
+      // Ensure widget is still mounted before navigation
       if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainPage()),
       );
     } catch (e) {
+      // Ensure widget is still mounted before calling context-dependent methods
       if (!mounted) return;
-      setState(() => _isLoading = false);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving medication: $e')),
       );
@@ -191,7 +279,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final entry = MedicationEntry(
                 med: provider.selectedMed,
                 form: provider.selectedForm,
@@ -212,7 +300,23 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 doorIndex: provider.selectedDoorIndex!,
               );
               provider.addMedicationEntry(entry);
-              saveMedicationData();
+              final doorIndex = provider.selectedDoorIndex ?? 0;
+              final latestMed = provider.medList.last;
+              //saveMedicationData();
+              // Upload to Firebase Realtime Database (existing method)
+              try {
+                await uploadMedicationToDoor(context, latestMed, doorIndex);
+              } on Exception catch (e) {
+                logger.e('Error uploading medication to door: $e');
+              }
+
+              try {
+                // Upload to Firestore (new method with instanceFor)
+                await uploadMedicationToFirestore(
+                    context, latestMed, doorIndex);
+              } catch (e) {
+                logger.e('Error: $e');
+              }
               _logger.e('Medications now in list: ${provider.medList.length}');
 
               Navigator.pop(context);

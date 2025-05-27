@@ -30,11 +30,6 @@ class _ReusableFrequencyMainOptionsPage
 
     final List<String> medFormOptions = [
       "Every day",
-      "Every other day",
-      "Specific day",
-      "Specific days of the week",
-      "On a recurring cycle",
-      "Every X days",
     ];
 
     return Scaffold(

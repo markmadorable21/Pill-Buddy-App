@@ -372,15 +372,15 @@ class _HomePageState extends State<HomePage> {
 
     // 1) Sort by clock time
     medList.sort((a, b) {
-      final ta = _toMinutes(_parseTimeOfDay(a.time));
-      final tb = _toMinutes(_parseTimeOfDay(b.time));
+      final ta = _toMinutes(_parseTimeOfDay(a.time!));
+      final tb = _toMinutes(_parseTimeOfDay(b.time!));
       return ta.compareTo(tb);
     });
 
     // 2) Group into a Map<String time, List<MedicationEntry>>
     final Map<String, List<MedicationEntry>> grouped = {};
     for (final med in medList) {
-      final timeKey = _timePrefix(med.time); // e.g. "08:10 AM"
+      final timeKey = _timePrefix(med.time!); // e.g. "08:10 AM"
       grouped.putIfAbsent(timeKey, () => []).add(med);
     }
 
@@ -408,8 +408,8 @@ class _HomePageState extends State<HomePage> {
 
             // One card per med in this time slot
             ...meds.map((med) {
-              final icon = _iconForForm(med.form);
-              final unit = _unitForForm(med.form);
+              final icon = _iconForForm(med.form!);
+              final unit = _unitForForm(med.form!);
 
               return Padding(
                 padding:
@@ -443,7 +443,7 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(med.med,
+                            Text(med.med!,
                                 style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
