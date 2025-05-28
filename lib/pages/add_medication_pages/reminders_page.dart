@@ -15,13 +15,13 @@ class RemindersPage extends StatefulWidget {
 }
 
 class _RemindersPageState extends State<RemindersPage> {
-  late DatabaseReference door1Ref;
-  late DatabaseReference door2Ref;
-  var _logger = Logger();
+  DatabaseReference? door1Ref;
+  DatabaseReference? door2Ref;
+  final _logger = Logger();
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -31,23 +31,26 @@ class _RemindersPageState extends State<RemindersPage> {
 
     final deviceId =
         Provider.of<MedicationProvider>(context, listen: false).deviceId;
+
     if (deviceId.isEmpty) {
-      _logger.e("Device ID is not set. Cannot upload medication.");
+      _logger.e("Device ID is not set. Cannot load medication.");
       throw Exception('Device ID not set');
     }
 
-    // Setting up door references dynamically based on device ID
-    door1Ref = FirebaseDatabase.instanceFor(
-      app: Firebase.app(),
-      databaseURL:
-          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref().child(deviceId).child('Door1');
+    // Initialize refs once
+    if (door1Ref == null || door2Ref == null) {
+      door1Ref = FirebaseDatabase.instanceFor(
+        app: Firebase.app(),
+        databaseURL:
+            'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+      ).ref().child(deviceId).child('Door1');
 
-    door2Ref = FirebaseDatabase.instanceFor(
-      app: Firebase.app(),
-      databaseURL:
-          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref().child(deviceId).child('Door2');
+      door2Ref = FirebaseDatabase.instanceFor(
+        app: Firebase.app(),
+        databaseURL:
+            'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+      ).ref().child(deviceId).child('Door2');
+    }
   }
 
   Future<void> _launchInfo(String medName) async {
@@ -59,15 +62,13 @@ class _RemindersPageState extends State<RemindersPage> {
   }
 
   Future<void> _updateClickedAndSubtract(DatabaseReference ref) async {
-    final provider = Provider.of<MedicationProvider>(context, listen: false);
-
     final snapshot = await ref.get();
     if (snapshot.value == null) return; // safety check
     final data = Map<String, dynamic>.from(snapshot.value as Map);
 
     final int current = int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
 
-    final int userQty = int.tryParse(provider.selectedQuantity) ?? 0;
+    final int userQty = int.tryParse(data['quantity'].toString()) ?? 0;
 
     final int newTotal = (current - userQty).clamp(0, current);
 
@@ -148,42 +149,51 @@ class _RemindersPageState extends State<RemindersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<MedicationProvider>();
-
-    String? door1MedName = 'No medication in Door 1';
-    String? door2MedName = 'No medication in Door 2';
-
-    try {
-      door1MedName =
-          provider.medList.firstWhere((med) => med.doorIndex == 0).med;
-    } catch (_) {}
-
-    try {
-      door2MedName =
-          provider.medList.firstWhere((med) => med.doorIndex == 1).med;
-    } catch (_) {}
+    // If refs are not yet initialized, show loading
+    if (door1Ref == null || door2Ref == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       body: ListView(
         children: [
-          // Listen to changes in Door 1
+          // Door 1 StreamBuilder listens for Door1 changes
           StreamBuilder<DatabaseEvent>(
-            stream: door1Ref.onValue,
-            builder: (ctx, snap) {
-              final data = snap.data?.snapshot.value as Map? ?? {};
+            stream: door1Ref!.onValue,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+                return const ListTile(
+                  title: Text('Loading Door 1...'),
+                );
+              }
+              final data = Map<String, dynamic>.from(
+                  snapshot.data!.snapshot.value as Map);
               final qty =
                   int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
-              return _buildDoorCard('Door 1', qty, door1MedName!, door1Ref);
+              final medName = data['med']?.toString() ?? 'No medication';
+
+              return _buildDoorCard('Door 1', qty, medName, door1Ref!);
             },
           ),
-          // Listen to changes in Door 2
+
+          // Door 2 StreamBuilder listens for Door2 changes
           StreamBuilder<DatabaseEvent>(
-            stream: door2Ref.onValue,
-            builder: (ctx, snap) {
-              final data = snap.data?.snapshot.value as Map? ?? {};
+            stream: door2Ref!.onValue,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+                return const ListTile(
+                  title: Text('Loading Door 2...'),
+                );
+              }
+              final data = Map<String, dynamic>.from(
+                  snapshot.data!.snapshot.value as Map);
               final qty =
                   int.tryParse(data['totalQty']?.toString() ?? '0') ?? 0;
-              return _buildDoorCard('Door 2', qty, door2MedName!, door2Ref);
+              final medName = data['med']?.toString() ?? 'No medication';
+
+              return _buildDoorCard('Door 2', qty, medName, door2Ref!);
             },
           ),
         ],
