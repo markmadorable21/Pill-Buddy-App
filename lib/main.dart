@@ -149,7 +149,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginRegisterPage(),
+      home: const MainPage(),
     );
   }
 }

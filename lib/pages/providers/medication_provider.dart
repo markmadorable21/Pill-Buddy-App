@@ -189,7 +189,7 @@ class MedicationProvider with ChangeNotifier {
     }
   }
 
-  String _deviceId = '';
+  String _deviceId = 'PillBuddy2';
   String get deviceId => _deviceId;
 
   void setDeviceId(String id) {

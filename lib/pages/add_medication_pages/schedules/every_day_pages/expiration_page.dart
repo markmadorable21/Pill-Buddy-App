@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/other_options_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +15,7 @@ class ExpirationPage extends StatefulWidget {
 
 class _MedicationExpirationPageState extends State<ExpirationPage> {
   DateTime? _selectedDate;
-
+  var logger = Logger();
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -116,7 +117,7 @@ class _MedicationExpirationPageState extends State<ExpirationPage> {
                 child: ElevatedButton(
                   onPressed: _selectedDate != null
                       ? () {
-                          print(
+                          logger.e(
                               "Expiration Date: ${_selectedDate!.toIso8601String()}");
                           // Navigate to next step or save date to provider
                           Navigator.push(

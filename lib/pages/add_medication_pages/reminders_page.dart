@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -16,6 +17,7 @@ class RemindersPage extends StatefulWidget {
 class _RemindersPageState extends State<RemindersPage> {
   late DatabaseReference door1Ref;
   late DatabaseReference door2Ref;
+  var _logger = Logger();
 
   @override
   void initState() {
@@ -26,19 +28,26 @@ class _RemindersPageState extends State<RemindersPage> {
       // Handle user not logged in appropriately here
       throw Exception('User not logged in');
     }
-    final uid = user.uid;
 
+    final deviceId =
+        Provider.of<MedicationProvider>(context, listen: false).deviceId;
+    if (deviceId.isEmpty) {
+      _logger.e("Device ID is not set. Cannot upload medication.");
+      throw Exception('Device ID not set');
+    }
+
+    // Setting up door references dynamically based on device ID
     door1Ref = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL:
           'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref('users/$uid/medications/door1');
+    ).ref().child(deviceId).child('Door1');
 
     door2Ref = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL:
           'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
-    ).ref('users/$uid/medications/door2');
+    ).ref().child(deviceId).child('Door2');
   }
 
   Future<void> _launchInfo(String medName) async {
@@ -157,6 +166,7 @@ class _RemindersPageState extends State<RemindersPage> {
     return Scaffold(
       body: ListView(
         children: [
+          // Listen to changes in Door 1
           StreamBuilder<DatabaseEvent>(
             stream: door1Ref.onValue,
             builder: (ctx, snap) {
@@ -166,6 +176,7 @@ class _RemindersPageState extends State<RemindersPage> {
               return _buildDoorCard('Door 1', qty, door1MedName!, door1Ref);
             },
           ),
+          // Listen to changes in Door 2
           StreamBuilder<DatabaseEvent>(
             stream: door2Ref.onValue,
             builder: (ctx, snap) {

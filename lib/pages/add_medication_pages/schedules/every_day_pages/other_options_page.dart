@@ -27,77 +27,68 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
   bool isPage2Done = false;
   bool isPage3Done = false;
   bool isPage4Done = false;
-
+  bool isUploading = false;
   final _logger = Logger();
-  bool _isLoading = false;
 
-  Future<void> uploadMedicationToFirestore(
-      BuildContext context, MedicationEntry med, int doorIndex) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('No authenticated user found');
+  // Future<void> uploadMedicationToRealtimeDB(
+  //     BuildContext context, MedicationEntry med, int doorIndex) async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) throw Exception('No authenticated user found');
 
-    final doorKey = doorIndex == 0 ? 'Door1' : 'Door2';
+  //   final doorKey = doorIndex == 0 ? 'Door1' : 'Door2';
 
-    // Reference medications collection, doc = user UID
-    final docRef =
-        FirebaseFirestore.instance.collection('medications').doc(user.uid);
+  //   // Replace with your actual Realtime Database URL
+  //   const databaseUrl =
+  //       'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-    // Prepare times as 24h decimal strings (e.g. 13.55)
-    final timesList = med.selectedTimes ?? [];
-    String fmt(int idx) {
-      if (idx >= timesList.length) {
-        return ''; // Return empty string if timesList is smaller than idx
-      }
-      final t = timesList[idx];
-      final hour = t.hour;
-      final minute = t.minute;
-      final asDecimal = hour + (minute / 60);
-      return asDecimal.toStringAsFixed(2);
-    }
+  //   final database = FirebaseDatabase.instanceFor(
+  //     app: Firebase.app(),
+  //     databaseURL: databaseUrl,
+  //   );
 
-    // Creating the data to upload with null checks
-    final data = {
-      doorKey: {
-        'added': true,
-        'med': med.med ?? 'Unknown Medication', // Use default if null
-        'form': med.form ?? 'Unknown Form', // Use default if null
-        'purpose': med.purpose ?? 'No Purpose', // Use default if null
-        'frequency': med.frequency ?? 0, // Default to 0 if null
+  //   final dbRef = database.ref('medications/${user.uid}/$doorKey');
 
-        'time': med.time ?? 'No Time Set', // Default if null
-        'amount': med.amount ?? 0, // Default to 0 if null
-        'quantity': med.quantity ?? 0, // Default to 0 if null
-        'date': (med.date is DateTime)
-            ? (med.date as DateTime).toIso8601String()
-            : 'No Date', // Check type and then call toIso8601String()
-        'expiration': (med.expiration is DateTime)
-            ? (med.expiration as DateTime).toIso8601String()
-            : 'No Expiration', // Same for expiration
+  //   final timesList = med.selectedTimes ?? [];
+  //   String fmt(int idx) {
+  //     if (idx >= timesList.length) return '';
+  //     final t = timesList[idx];
+  //     final hour = t.hour.toString().padLeft(2, '0');
+  //     final minute = t.minute.toString().padLeft(2, '0');
+  //     return '$hour:$minute';
+  //   }
 
-        'timesperday': _convertTimesPerDayToInt(
-            Provider.of<MedicationProvider>(context, listen: false)
-                .selectedTimesPerDay),
-        'intake': _convertTimesPerDayToInt(
-            Provider.of<MedicationProvider>(context, listen: false)
-                .selectedTimesPerDay),
-        'time1': fmt(0),
-        'time2': fmt(1),
-        'time3': fmt(2),
-        'time4': fmt(3),
-        'clicked': false,
-      }
-    };
+  //   final data = {
+  //     'added': true,
+  //     'med': med.med ?? 'Unknown Medication',
+  //     'form': med.form ?? 'Unknown Form',
+  //     'purpose': med.purpose ?? 'No Purpose',
+  //     'frequency': med.frequency ?? 0,
+  //     'time': med.time ?? 'No Time Set',
+  //     'amount': med.amount ?? 0,
+  //     'quantity': med.quantity ?? 0,
+  //     'date added': DateTime.now().toIso8601String(),
+  //     'expiration': (med.expiration ?? DateTime.now()).toString(),
+  //     'timesperday': _convertTimesPerDayToInt(
+  //         Provider.of<MedicationProvider>(context, listen: false)
+  //             .selectedTimesPerDay),
+  //     'intake': _convertTimesPerDayToInt(
+  //         Provider.of<MedicationProvider>(context, listen: false)
+  //             .selectedTimesPerDay),
+  //     'time1': fmt(0),
+  //     'time2': fmt(1),
+  //     'time3': fmt(2),
+  //     'time4': fmt(3),
+  //     'clicked': false,
+  //   };
 
-    try {
-      // Merge updates with existing doc so other door’s data is preserved
-      await docRef.set(data, SetOptions(merge: true));
-      _logger.i('Medication uploaded to Firestore: $data');
-    } catch (e, st) {
-      _logger.e('Failed to upload medication to Firestore',
-          error: e, stackTrace: st);
-      rethrow;
-    }
-  }
+  //   try {
+  //     await dbRef.set(data);
+  //     debugPrint('✅ Medication uploaded to Realtime DB: $data');
+  //   } catch (e, st) {
+  //     debugPrint('❌ Failed to upload medication: $e');
+  //     rethrow;
+  //   }
+  // }
 
   int _convertTimesPerDayToInt(String? label) {
     switch (label?.toLowerCase()) {
@@ -142,16 +133,12 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
           Provider.of<MedicationProvider>(context, listen: false)
               .selectedTimesPerDay);
       final timesList = med.selectedTimes ?? [];
-
-      String? fmt(int idx) {
+      String fmt(int idx) {
         if (idx >= timesList.length) return '';
         final t = timesList[idx];
-        // Convert to decimal: e.g. 1:33 PM → 13.55
-        final hour = t.hour;
-        final minute = t.minute;
-        final asDecimal = hour + (minute / 60);
-        // Round to 2 decimals as a string for DB upload
-        return asDecimal.toStringAsFixed(2);
+        final hour = t.hour.toString().padLeft(2, '0');
+        final minute = t.minute.toString().padLeft(2, '0');
+        return '$hour.$minute';
       }
 
       final doorPayload = {
@@ -165,6 +152,13 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         'time3': fmt(2),
         'time4': fmt(3),
         'clicked': false,
+        'med': med.med ?? 'Unknown Medication',
+        'form': med.form ?? 'Unknown Form',
+        'purpose': med.purpose ?? 'No Purpose',
+        'frequency': med.frequency ?? 'No Frequency',
+        'amount': med.amount ?? '0',
+        'quantity': med.quantity ?? '0',
+        'expiration': (med.expiration ?? DateTime.now()).toString(),
       };
 
       // Set medication door data
@@ -182,51 +176,51 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
     }
   }
 
-  Future<void> saveMedicationData() async {
-    final provider = context.read<MedicationProvider>();
+  // Future<void> saveMedicationData() async {
+  //   final provider = context.read<MedicationProvider>();
 
-    if (provider.medList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No medications to save')),
-      );
-      return;
-    }
+  //   if (provider.medList.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('No medications to save')),
+  //     );
+  //     return;
+  //   }
 
-    final doorIndex = provider.selectedDoorIndex ?? 0;
-    final latestMed = provider.medList.last;
+  //   final doorIndex = provider.selectedDoorIndex ?? 0;
+  //   final latestMed = provider.medList.last;
 
-    try {
-      // Upload to Firebase Realtime Database (existing method)
-      await uploadMedicationToDoor(context, latestMed, doorIndex);
+  //   try {
+  //     // Upload to Firebase Realtime Database (existing method)
+  //     await uploadMedicationToDoor(context, latestMed, doorIndex);
 
-      try {
-        // Upload to Firestore (new method with instanceFor)
-        await uploadMedicationToFirestore(context, latestMed, doorIndex);
-      } catch (e) {
-        logger.e('Error: $e');
-      }
+  //     // try {
+  //     //   // Upload to Firestore (new method with instanceFor)
+  //     //   await uploadMedicationToRealtimeDB(context, latestMed, doorIndex);
+  //     // } catch (e) {
+  //     //   logger.e('Error: $e');
+  //     // }
 
-      // Ensure widget is still mounted before calling context-dependent methods
-      if (!mounted) return;
+  //     // Ensure widget is still mounted before calling context-dependent methods
+  //     if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Medication saved successfully!')),
-      );
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Medication saved successfully!')),
+  //     );
 
-      // Ensure widget is still mounted before navigation
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainPage()),
-      );
-    } catch (e) {
-      // Ensure widget is still mounted before calling context-dependent methods
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving medication: $e')),
-      );
-    }
-  }
+  //     // Ensure widget is still mounted before navigation
+  //     if (!mounted) return;
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const MainPage()),
+  //     );
+  //   } catch (e) {
+  //     // Ensure widget is still mounted before calling context-dependent methods
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error saving medication: $e')),
+  //     );
+  //   }
+  // }
 
   void _showConfirmationDialog(MedicationProvider provider) {
     showDialog(
@@ -280,6 +274,9 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
           ),
           ElevatedButton(
             onPressed: () async {
+              setState(() {
+                isUploading = true;
+              });
               final entry = MedicationEntry(
                 med: provider.selectedMed,
                 form: provider.selectedForm,
@@ -299,6 +296,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 selectedTimes: provider.selectedTimes,
                 doorIndex: provider.selectedDoorIndex!,
               );
+
               provider.addMedicationEntry(entry);
               final doorIndex = provider.selectedDoorIndex ?? 0;
               final latestMed = provider.medList.last;
@@ -309,14 +307,16 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
               } on Exception catch (e) {
                 logger.e('Error uploading medication to door: $e');
               }
-
-              try {
-                // Upload to Firestore (new method with instanceFor)
-                await uploadMedicationToFirestore(
-                    context, latestMed, doorIndex);
-              } catch (e) {
-                logger.e('Error: $e');
-              }
+              setState(() {
+                isUploading = false;
+              });
+              // try {
+              //   // Upload to Firestore (new method with instanceFor)
+              //   await uploadMedicationToRealtimeDB(
+              //       context, latestMed, doorIndex);
+              // } catch (e) {
+              //   logger.e('Error: $e');
+              // }
               _logger.e('Medications now in list: ${provider.medList.length}');
 
               Navigator.pop(context);
@@ -477,13 +477,6 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
                 ),
               ),
             ),
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
           ],
         ),
       ),
