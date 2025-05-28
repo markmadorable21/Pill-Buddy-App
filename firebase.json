@@ -1,1 +1,49 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"pill-buddy-cpe-nnovators","appId":"1:315654084941:android:c85d6d323ba4d683f43f04","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"pill-buddy-cpe-nnovators","configurations":{"android":"1:315654084941:android:c85d6d323ba4d683f43f04","ios":"1:315654084941:ios:e77661780a130b77f43f04","macos":"1:315654084941:ios:e77661780a130b77f43f04","web":"1:315654084941:web:8eb7d8f3dcfba65af43f04","windows":"1:315654084941:web:93c09959fcbd2d9df43f04"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "pill-buddy-cpe-nnovators",
+          "appId": "1:315654084941:android:c85d6d323ba4d683f43f04",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "pill-buddy-cpe-nnovators",
+          "configurations": {
+            "android": "1:315654084941:android:c85d6d323ba4d683f43f04",
+            "ios": "1:315654084941:ios:e77661780a130b77f43f04",
+            "macos": "1:315654084941:ios:e77661780a130b77f43f04",
+            "web": "1:315654084941:web:8eb7d8f3dcfba65af43f04",
+            "windows": "1:315654084941:web:93c09959fcbd2d9df43f04"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ],
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 import 'package:provider/provider.dart';
 import 'package:country_state_city/country_state_city.dart' as csc;
@@ -246,13 +248,27 @@ class SetAddressPage extends StatelessWidget {
                               'Complete Address: ${provider.completeAddress}\n'
                               'Additional Info: ${_additionalInfoController.text}',
                             );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const CreateProfileHopeToAchievePage(),
-                              ),
-                            );
+                            bool isCaregiver = Provider.of<MedicationProvider>(
+                                    context,
+                                    listen: false)
+                                .isCaregiver;
+                            if (isCaregiver) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const CreateProfileConfirmEmailPage(),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const CreateProfileHopeToAchievePage(),
+                                ),
+                              );
+                            }
                           }
                         : null,
                     child: const Text(

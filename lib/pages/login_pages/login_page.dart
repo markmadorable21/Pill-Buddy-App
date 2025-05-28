@@ -4,6 +4,7 @@ import 'package:pill_buddy/pages/forgot_password_pages/forgot_password_page.dart
 import 'package:pill_buddy/pages/login_pages/google_signin_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/main_page_caregiver.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Define your primary color
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -48,10 +50,19 @@ class _LoginPageState extends State<LoginPage> {
         showFrontToastSuccess(
             context, "Login successful!"); // Show success message
         // Navigate to the main page after successful login
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-        );
+        bool isCaregiver =
+            Provider.of<MedicationProvider>(context, listen: false).isCaregiver;
+        if (isCaregiver) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainPageCaregiver()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainPage()),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = "An error occurred";
@@ -110,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
     _showFrontToast(
       context,
       text,
-      backgroundColor: Colors.green.shade600,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       icon: Icons.check_circle,
     );
   }
@@ -187,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 150),
                 // Welcome Message
                 Text(
-                  "Welcome back!\nGlad to see you, Again!",
+                  "Welcome back!\nGlad to see you, again!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,

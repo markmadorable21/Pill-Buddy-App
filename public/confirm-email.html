@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Email Confirmation</title>
+  </head>
+  <body>
+    <h1>Email Confirmation</h1>
+    <p id="message">Confirming your email, please wait...</p>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const patientId = params.get('patientId');
+
+      if (!patientId) {
+        document.getElementById('message').innerText =
+          'Invalid confirmation link.';
+      } else {
+        fetch(
+          `https://us-central1-your-firebase-project.cloudfunctions.net/confirmEmail?patientId=${patientId}`
+        )
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById('message').innerText = data;
+          })
+          .catch((err) => {
+            document.getElementById('message').innerText =
+              'Error confirming email.';
+            console.error(err);
+          });
+      }
+    </script>
+  </body>
+</html>

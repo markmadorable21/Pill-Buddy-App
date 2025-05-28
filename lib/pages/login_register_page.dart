@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
+import 'package:pill_buddy/pages/login_pages/login_page_user_type.dart';
 import 'package:pill_buddy/pages/register_pages/register_page.dart';
 
 class LoginRegisterPage extends StatelessWidget {
@@ -78,7 +79,7 @@ class LoginRegisterPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
+                          builder: (context) => const LoginPageUserType()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

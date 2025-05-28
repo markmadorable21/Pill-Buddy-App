@@ -117,6 +117,8 @@ class MedicationProvider with ChangeNotifier {
   String _selectedExpiration = '';
   bool _addedMed = false;
   bool get addedMed => _addedMed;
+  bool _addedPatient = false;
+  bool get addedPatient => _addedPatient;
 
   //login
   String _inputtedEmail = '';
@@ -131,6 +133,8 @@ class MedicationProvider with ChangeNotifier {
   int _calculatedAge = 0;
   String? _avatarUrl;
   String? get avatarUrl => _avatarUrl;
+  bool _isCaregiver = true;
+  bool get isCaregiver => _isCaregiver;
 
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
@@ -317,8 +321,18 @@ class MedicationProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setCaregiver(bool value) {
+    _isCaregiver = value;
+    notifyListeners();
+  }
+
   void addMedMarkSave(bool value) {
     _addedMed = value;
+    notifyListeners();
+  }
+
+  void addPatient(bool value) {
+    _addedPatient = value;
     notifyListeners();
   }
 

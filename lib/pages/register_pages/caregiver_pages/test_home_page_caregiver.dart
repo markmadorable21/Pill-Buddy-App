@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +11,14 @@ import 'package:provider/provider.dart';
 
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 
-class TestHomePage extends StatefulWidget {
-  const TestHomePage({super.key});
+class TestHomePageCaregiver extends StatefulWidget {
+  const TestHomePageCaregiver({super.key});
 
   @override
   _TestHomePageState createState() => _TestHomePageState();
 }
 
-class _TestHomePageState extends State<TestHomePage> {
+class _TestHomePageState extends State<TestHomePageCaregiver> {
   late Future<List<Map<String, dynamic>>>? _timeCardsFuture;
   String? _deviceId;
 
@@ -53,6 +55,8 @@ class _TestHomePageState extends State<TestHomePage> {
       }
     }
   }
+
+  final user = FirebaseAuth.instance.currentUser;
 
   Future<List<Map<String, dynamic>>> fetchMedicationsFromRealtimeDB(
       String deviceId) async {
@@ -394,13 +398,15 @@ class _TestHomePageState extends State<TestHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<MedicationProvider>(context);
+    bool addedPatient =
+        Provider.of<MedicationProvider>(context, listen: false).addedPatient;
     final primaryColor = Theme.of(context).colorScheme.primary;
     return Scaffold(
       body: Column(
         children: [
           const SizedBox(height: 8),
-          // Calendar strip (horizontal scroll)
+
+          //listview for horizontal date selection
           SizedBox(
             height: 60,
             child: ListView.builder(
@@ -456,158 +462,124 @@ class _TestHomePageState extends State<TestHomePage> {
               ),
             ],
           ),
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _timeCardsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-              final timeCards = snapshot.data ?? [];
+          addedPatient
+              ?
+              //listview builder for medications list
+              FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _timeCardsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    final timeCards = snapshot.data ?? [];
 
-              if (timeCards.isEmpty) {
-                return const Center(child: Text("No medications found."));
-              }
+                    if (timeCards.isEmpty) {
+                      return const Center(child: Text("No medications found."));
+                    }
 
-              return SizedBox(
-                height: MediaQuery.of(context).size.height - 385,
-                child: ListView.builder(
-                  itemCount: timeCards.length,
-                  itemBuilder: (context, index) {
-                    final card = timeCards[index];
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height - 370,
+                      child: ListView.builder(
+                        itemCount: timeCards.length,
+                        itemBuilder: (context, index) {
+                          final card = timeCards[index];
 
-                    return Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-//                       child: ListTile(
-//   title: Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     mainAxisSize: MainAxisSize.min,
-//     children: [
-//       Text(
-//         "${card['time']}",
-//         style: const TextStyle(
-//           fontWeight: FontWeight.bold,
-//           fontSize: 18,
-//         ),
-//       ),
-//       const SizedBox(height: 6),
-//       Row(
-//         children: [
-//           Container(
-//             width: 20,
-//             height: 20,
-//             decoration: BoxDecoration(
-//               color: Colors.blue, // or any color you want
-//               borderRadius: BorderRadius.circular(4),
-//             ),
-//             child: const Icon(
-//               Icons.medical_services, // choose an icon you prefer
-//               size: 16,
-//               color: Colors.white,
-//             ),
-//           ),
-//           const SizedBox(width: 8),
-//           Expanded(
-//             child: Container(
-//               height: 1,
-//               color: Colors.grey[400], // horizontal line color
-//             ),
-//           ),
-//           const SizedBox(width: 8),
-//           Text(
-//             card['med'],
-//             style: const TextStyle(fontSize: 16),
-//           ),
-//         ],
-//       ),
-//     ],
-//   ),
-//   subtitle: Text("Take ${card['quantity']} ${card['form']}"),
-//   onTap: () {
-//     _showDetailDialog(
-//       context,
-//       Provider.of<MedicationProvider>(context, listen: false).deviceId,
-//       card,
-//     );
-//   },
-// ),
-
-                        child: ListTile(
-                          title: Text(
-                            "${card['time']}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Row(
-                              children: [
-                                Icon(LucideIcons.pill,
-                                    size: 30, color: primaryColor),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                          return Card(
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              child: ListTile(
+                                title: Text(
+                                  "${card['time']}",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        card['med'],
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                      Icon(LucideIcons.pill,
+                                          size: 30, color: primaryColor),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              card['med'],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                                'Take ${card['quantity']} ${card['form']}'),
+                                          ],
                                         ),
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      Text(
-                                          'Take ${card['quantity']} ${card['form']}'),
                                     ],
                                   ),
                                 ),
-                              ],
+                                onTap: () {
+                                  _showDetailDialog(
+                                    context,
+                                    Provider.of<MedicationProvider>(context,
+                                            listen: false)
+                                        .deviceId,
+                                    card,
+                                  );
+                                },
+                              ));
+                        },
+                      ),
+                    );
+                  },
+                )
+              : Center(
+                  child: Column(
+                  children: [
+                    const SizedBox(height: 200),
+                    const Text("No patient added yet.",
+                        style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Please add a patient to continue.",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 230),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       builder: (_) => const InputDeviceIdPage()),
+                            // );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onTap: () {
-                            _showDetailDialog(
-                              context,
-                              Provider.of<MedicationProvider>(context,
-                                      listen: false)
-                                  .deviceId,
-                              card,
-                            );
-                          },
-                        ));
-                  },
-                ),
-              );
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const InputDeviceIdPage()),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  "Add Medication",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
+                          child: const Text(
+                            "Add Patient",
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
         ],
       ),
     );

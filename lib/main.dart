@@ -17,7 +17,9 @@ import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_date_in
 import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_inputter_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_day_pages/set_amount_date_time_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_days_of_week_page.dart';
+import 'package:pill_buddy/pages/add_patient_pages/add_patient_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
+import 'package:pill_buddy/pages/login_pages/login_page_user_type.dart';
 import 'package:pill_buddy/pages/main_pages/add_medication_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
@@ -25,6 +27,9 @@ import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
 import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:pill_buddy/pages/providers/testmedprovider.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/create_my_profile_name_page_caregiver.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/create_my_profile_page_caregiver.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/main_page_caregiver.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
@@ -110,15 +115,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCaregiver = context.watch<MedicationProvider>().isCaregiver;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Pill Buddy',
       theme: ThemeData(
         fontFamily: 'Lato',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 24, 172, 24),
-          primary: const Color.fromARGB(255, 24, 172, 24), //#18ac18
-        ),
+        colorScheme: isCaregiver
+            ? ColorScheme.fromSeed(
+                seedColor: const Color.fromARGB(255, 0, 132, 255),
+                primary: const Color.fromARGB(255, 0, 132, 255), // #0084ff
+              )
+            : ColorScheme.fromSeed(
+                seedColor: const Color.fromARGB(255, 24, 172, 24),
+                primary: const Color.fromARGB(255, 24, 172, 24), //#18ac18
+              ),
         appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(
             fontSize: 20,
@@ -147,7 +158,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainPage(),
+      home: const AddPatientPage(),
     );
   }
 }

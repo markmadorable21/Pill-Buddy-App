@@ -297,7 +297,7 @@ class _CreateProfileConfirmEmailPageState
     _showFrontToast(
       context,
       text,
-      backgroundColor: Colors.green.shade600,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       icon: Icons.check_circle,
     );
   }

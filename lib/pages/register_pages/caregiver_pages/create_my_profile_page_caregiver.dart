@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_name_page.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/create_my_profile_name_page_caregiver.dart';
 
-class CreateMyProfilePage extends StatefulWidget {
-  const CreateMyProfilePage({super.key});
+class CreateMyProfilePageCaregiver extends StatefulWidget {
+  const CreateMyProfilePageCaregiver({super.key});
 
   @override
-  State<CreateMyProfilePage> createState() => _CreateMyProfilePageState();
+  State<CreateMyProfilePageCaregiver> createState() =>
+      _CreateMyProfilePageStateCaregiver();
 }
 
-class _CreateMyProfilePageState extends State<CreateMyProfilePage>
+class _CreateMyProfilePageStateCaregiver
+    extends State<CreateMyProfilePageCaregiver>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
@@ -64,7 +66,8 @@ class _CreateMyProfilePageState extends State<CreateMyProfilePage>
             // 🔵 Animated Icon
             FadeTransition(
               opacity: _fadeAnimation,
-              child: Icon(Icons.person_add, size: 100, color: primaryColor),
+              child: Icon(Icons.volunteer_activism,
+                  size: 100, color: primaryColor),
             ),
 
             const SizedBox(height: 40),
@@ -75,14 +78,14 @@ class _CreateMyProfilePageState extends State<CreateMyProfilePage>
               child: const Column(
                 children: [
                   Text(
-                    "Your journey starts here",
+                    "Welcome, Caregiver",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 15),
                   Text(
-                    "Staying on top of your health is only a few taps away. "
-                    "Start by creating your profile to personalize your experience.",
+                    "Manage and support your loved ones’ health with ease. "
+                    "Create your caregiver profile to get started.",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
@@ -92,7 +95,6 @@ class _CreateMyProfilePageState extends State<CreateMyProfilePage>
 
             const Spacer(),
 
-            // 🔵 FIXED BUTTON ANIMATION
             AnimatedBuilder(
               animation: _fadeAnimation,
               builder: (context, child) {
@@ -115,11 +117,12 @@ class _CreateMyProfilePageState extends State<CreateMyProfilePage>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const CreateProfileNamePage()),
+                          builder: (context) =>
+                              const CreateProfileNamePageCaregiver()),
                     );
                   },
                   child: const Text(
-                    "Create Patient Profile",
+                    "Create Caregiver Profile",
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

@@ -199,11 +199,16 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
         ? 'No address provided'
         : addressProv.completeAddress;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final isCaregiver =
+        Provider.of<MedicationProvider>(context, listen: false).isCaregiver;
+    logger.i('isCaregiver: $isCaregiver');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Information',
-            style: TextStyle(color: Colors.black)),
+        title: isCaregiver
+            ? const Text('Caregiver Information')
+            : const Text('Patient Information',
+                style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: const BackButton(color: Colors.black),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -314,29 +319,66 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                   logger.e("avatarUrl: $imageUrl");
 
                   // Write user profile to Firestore
-                  final user = FirebaseAuth.instance.currentUser;
-                  if (user != null) {
-                    await FirebaseFirestore.instance
-                        .collection('patients')
-                        .doc(user.uid)
-                        .set({
-                      'name': context.read<MedicationProvider>().completeName,
-                      'birthdate':
-                          context.read<MedicationProvider>().birthDateFormatted,
-                      'age': context.read<MedicationProvider>().calculatedAge,
-                      'gender':
-                          context.read<MedicationProvider>().selectedGender,
-                      'address':
-                          context.read<AddressProvider>().completeAddress,
-                      'email': context.read<MedicationProvider>().inputtedEmail,
-                      'password':
-                          context.read<MedicationProvider>().inputtedPassword,
-                      'avatarUrl': context.read<MedicationProvider>().avatarUrl,
-                    });
-                    logger.e('User profile saved to Firestore.');
+                  if (isCaregiver) {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await FirebaseFirestore.instance
+                          .collection('caregivers')
+                          .doc(user.uid)
+                          .set({
+                        'name': context.read<MedicationProvider>().completeName,
+                        'birthdate': context
+                            .read<MedicationProvider>()
+                            .birthDateFormatted,
+                        'age': context.read<MedicationProvider>().calculatedAge,
+                        'gender':
+                            context.read<MedicationProvider>().selectedGender,
+                        'address':
+                            context.read<AddressProvider>().completeAddress,
+                        'email':
+                            context.read<MedicationProvider>().inputtedEmail,
+                        'password':
+                            context.read<MedicationProvider>().inputtedPassword,
+                        'avatarUrl':
+                            context.read<MedicationProvider>().avatarUrl,
+                      });
+                      logger.e(
+                          'User profile saved to Firestore under caregivers.');
+                    } else {
+                      logger.e('No user is currently signed in.');
+                    }
+                    logger.e('Saving caregiver profile to Firestore...');
                   } else {
-                    logger.e('No user is currently signed in.');
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await FirebaseFirestore.instance
+                          .collection('patients')
+                          .doc(user.uid)
+                          .set({
+                        'name': context.read<MedicationProvider>().completeName,
+                        'birthdate': context
+                            .read<MedicationProvider>()
+                            .birthDateFormatted,
+                        'age': context.read<MedicationProvider>().calculatedAge,
+                        'gender':
+                            context.read<MedicationProvider>().selectedGender,
+                        'address':
+                            context.read<AddressProvider>().completeAddress,
+                        'email':
+                            context.read<MedicationProvider>().inputtedEmail,
+                        'password':
+                            context.read<MedicationProvider>().inputtedPassword,
+                        'avatarUrl':
+                            context.read<MedicationProvider>().avatarUrl,
+                      });
+                      logger
+                          .e('User profile saved to Firestore under patients.');
+                    } else {
+                      logger.e('No user is currently signed in.');
+                    }
+                    logger.e('Saving patient profile to Firestore...');
                   }
+
                   // _showAddCaregiverDialog();
 
                   Navigator.pushReplacement(context,
