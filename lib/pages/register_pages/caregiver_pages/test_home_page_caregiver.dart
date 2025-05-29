@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/add_patient_pages/check_patient_email_page.dart';
 import 'package:pill_buddy/pages/main_pages/input_device_id_page.dart';
 import 'package:provider/provider.dart';
 
@@ -558,11 +559,11 @@ class _TestHomePageState extends State<TestHomePageCaregiver> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //       builder: (_) => const InputDeviceIdPage()),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => CheckPatientEmailPage()),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,

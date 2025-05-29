@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
 import 'package:pill_buddy/pages/providers/door_status_provider.dart';
+import 'package:pill_buddy/pages/register_pages/caregiver_pages/main_page_caregiver.dart';
 import 'package:provider/provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reusable_add_med_name_page.dart';
@@ -159,11 +160,23 @@ class _InputDeviceIdPageState extends State<InputDeviceIdPage> {
                     ? () {
                         provider.setDeviceId(_controller.text.trim());
                         logger.e('Device ID set: ${_controller.text.trim()}');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const DoorSelectionPage()),
-                        );
+                        bool isCaregiver = Provider.of<MedicationProvider>(
+                                context,
+                                listen: false)
+                            .isCaregiver;
+                        if (isCaregiver) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MainPageCaregiver()),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const DoorSelectionPage()),
+                          );
+                        }
                       }
                     : null,
                 child: Text(

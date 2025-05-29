@@ -133,7 +133,7 @@ class MedicationProvider with ChangeNotifier {
   int _calculatedAge = 0;
   String? _avatarUrl;
   String? get avatarUrl => _avatarUrl;
-  bool _isCaregiver = true;
+  bool _isCaregiver = false;
   bool get isCaregiver => _isCaregiver;
 
   // Define a Set to hold selected options

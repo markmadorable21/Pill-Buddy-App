@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pill_buddy/firebase_options.dart';
 import 'package:pill_buddy/pages/add_caregiver_family_pages/test2_country_plus_ph.dart';
@@ -18,6 +19,7 @@ import 'package:pill_buddy/pages/add_medication_pages/schedules/reusable_time_in
 import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_day_pages/set_amount_date_time_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/specific_days_of_week_page.dart';
 import 'package:pill_buddy/pages/add_patient_pages/add_patient_page.dart';
+import 'package:pill_buddy/pages/add_patient_pages/check_patient_email_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page_user_type.dart';
 import 'package:pill_buddy/pages/main_pages/add_medication_page.dart';
@@ -54,6 +56,7 @@ final FlutterLocalNotificationsPlugin notificationsPlugin =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -158,7 +161,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const AddPatientPage(),
+      home: const LoginRegisterPage(),
     );
   }
 }

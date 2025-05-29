@@ -1,9 +1,16 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
+import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddPatientPage extends StatefulWidget {
   const AddPatientPage({super.key});
@@ -15,9 +22,8 @@ class AddPatientPage extends StatefulWidget {
 class _AddPatientPageState extends State<AddPatientPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  var logger = Logger();
+  final Logger logger = Logger();
   bool _isButtonEnabled = false;
-  final _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -36,124 +42,100 @@ class _AddPatientPageState extends State<AddPatientPage> {
         .hasMatch(email);
   }
 
-  Future<void> _sendVerificationEmail() async {
-    final email = _emailController.text.trim();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
+  Future<void> linkCaregiverByEmail(String caregiverEmail) async {
     try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: "TempPass123!", // Temporary strong password
-      );
-
-      final newUser = userCredential.user;
-      if (newUser == null) {
-        throw FirebaseAuthException(
-          code: 'user-null',
-          message: 'User object is null after creation.',
-        );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
       }
 
-      await newUser.sendEmailVerification();
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('linkCaregiver');
+      final result = await callable.call(<String, dynamic>{
+        'email': caregiverEmail,
+      });
 
-      Navigator.of(context).pop(); // Remove loading
-
-      await _showVerifyEmailDialog();
-
-      await _auth.signOut();
-    } on FirebaseAuthException catch (e) {
-      Navigator.of(context).pop(); // Remove loading
-      String message = "An error occurred";
-      if (e.code == 'email-already-in-use') {
-        message = "This email is already registered as a patient.";
-      } else if (e.code == 'invalid-email') {
-        message = "Invalid email address.";
+      final data = result.data as Map<String, dynamic>;
+      if (data['success'] == true) {
+        print('Caregiver linked with UID: ${data['caregiverUid']}');
+        // Optionally update UI or local state here
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+    } catch (e) {
+      print('Error linking caregiver: $e');
+      // Show error message in UI
     }
   }
 
-  Future<bool> _checkEmailVerified() async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
+  Future<void> sendEmail(String email) async {
+    final url = Uri.parse(
+        'https://vercel.com/mark-madorables-projects/pill-buddy/Dk78oAdSHVvFV1dU9o7niHUWLvm8');
 
-    await user.reload();
-    return user.emailVerified;
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "to": email,
+        "subject": "Hello!",
+        "text": "This email is sent from Flutter via Vercel + SendGrid"
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      logger.e("Email sent!");
+    } else {
+      logger.e("Failed to send email: ${response.body}");
+    }
   }
 
-  Future<void> _showVerifyEmailDialog() async {
-    final primaryColor = Theme.of(context).colorScheme.primary;
+  Future<void> sendVerificationEmail(String email, String code) async {
+    final url = Uri.parse('https://your-backend.com/sendEmail');
+    final response = await http.post(url, body: {
+      'email': email,
+      'code': code,
+    });
 
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.email, color: primaryColor),
-            const SizedBox(width: 8),
-            const Text('Verify patient email'),
-          ],
-        ),
-        content: const Text(
-          'A verification email has been sent to the patient\'s email address.\n\n'
-          'Please ask the patient to check their email and click the verification link to confirm their email.\n\n'
-          'After verification, press "Continue" below.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final verified = await _checkEmailVerified();
-              if (verified) {
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Email verified! Patient added.')),
-                );
-                // TODO: Add logic after successful verification, e.g., save patient info, navigate away
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Email not verified yet.')),
-                );
-              }
-            },
-            child: const Text('Continue'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final user = _auth.currentUser;
-              if (user != null && !user.emailVerified) {
-                try {
-                  await user.sendEmailVerification();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Verification email resent.')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error resending email: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Resend Email'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
+    if (response.statusCode == 200) {
+      print('Verification email sent');
+    } else {
+      print('Failed to send email');
+    }
+  }
+
+  Future<void> sendMailFromGmail(String sender, String sub, String text) async {
+    final email = dotenv.env["GMAIL_MAIL"];
+    final password = dotenv.env["GMAIL_PASSWORD"];
+
+    if (email == null || password == null) {
+      logger.e('Missing GMAIL_MAIL or GMAIL_PASSWORD in .env');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email credentials not found.')),
+      );
+      return;
+    }
+
+    final smtpServer = gmail(email, password);
+
+    final message = Message()
+      ..from = Address(email, 'Custom Support Staff')
+      ..recipients.add(sender)
+      ..subject = sub
+      ..text = text;
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      logger.i('Message sent: $sendReport');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verification email sent successfully.')),
+      );
+    } on MailerException catch (e) {
+      logger.e('Message not sent: $e');
+      for (var p in e.problems) {
+        logger.e('Problem: ${p.code}: ${p.msg}');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send verification email.')),
+      );
+    }
   }
 
   @override
@@ -170,18 +152,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
       appBar: AppBar(
         toolbarHeight: 70,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: primaryColor,
-        title: const Text(
-          'Add Patient',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Add Patient', style: TextStyle(color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -193,23 +168,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 40),
-                // Animated Email Icon
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 500),
                   child: Icon(Icons.email, size: 80, color: primaryColor),
                 ),
                 const SizedBox(height: 20),
-
-                // Title
                 const Text(
                   "Let's add the patient to monitor their medications",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-
-                // Subtitle
                 const Text(
                   "A confirmation message will be sent to the patient's email",
                   textAlign: TextAlign.center,
@@ -220,7 +190,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    hintText: 'Enter patient\'s email',
+                    hintText: "Enter patient's email",
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
@@ -235,11 +205,22 @@ class _AddPatientPageState extends State<AddPatientPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isButtonEnabled
-                        ? () {
+                        ? () async {
                             if (_formKey.currentState!.validate()) {
-                              _sendVerificationEmail();
-
-                              logger.i("Email: ${_emailController.text}");
+                              final email = _emailController.text.trim();
+                              try {
+                                //  sendEmail(email);
+                                linkCaregiverByEmail(email);
+                              } on Exception catch (e) {
+                                logger.e("Error sending email: $e");
+                              }
+                              // await sendMailFromGmail(
+                              //   email,
+                              //   'Email Verification',
+                              //   'Please verify your email.',
+                              // );
+                              logger
+                                  .i("Verification email triggered for $email");
                             }
                           }
                         : null,
@@ -250,11 +231,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Send Verification',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    child: const Text(
+                      'Send Verification',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 40),
