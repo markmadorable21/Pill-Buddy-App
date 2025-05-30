@@ -19,16 +19,28 @@ class _CheckPatientEmailPageState extends State<CheckPatientEmailPage> {
 
   Future<bool> checkEmailExists(String email) async {
     try {
-      // Adjust 'email' below to match the exact field name in patient documents
       final querySnapshot = await firestore
           .collection('patients')
           .where('email', isEqualTo: email)
           .limit(1)
           .get();
 
-      return querySnapshot.docs.isNotEmpty;
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final data = doc.data();
+
+        // Print the 'name' field if it exists
+        final name = data['name'];
+        logger.e('Email found. Name: $name');
+        Provider.of<MedicationProvider>(context, listen: false)
+            .addPatientName(name);
+        return true;
+      } else {
+        logger.e('Email not found.');
+        return false;
+      }
     } catch (e) {
-      print('Error querying patients collection: $e');
+      logger.e('Error querying patients collection: $e');
       return false;
     }
   }

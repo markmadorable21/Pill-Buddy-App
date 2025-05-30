@@ -401,187 +401,247 @@ class _TestHomePageState extends State<TestHomePageCaregiver> {
   Widget build(BuildContext context) {
     bool addedPatient =
         Provider.of<MedicationProvider>(context, listen: false).addedPatient;
+    String addedPatientName =
+        Provider.of<MedicationProvider>(context, listen: false)
+            .addedPatientName;
     final primaryColor = Theme.of(context).colorScheme.primary;
     return Scaffold(
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
-
-          //listview for horizontal date selection
-          SizedBox(
-            height: 60,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              controller: _scrollController,
-              itemCount: 1000,
-              itemBuilder: (ctx, idx) {
-                final day = DateTime.now().add(Duration(days: idx - 500));
-                final isSelected = day.year == _currentDate.year &&
-                    day.month == _currentDate.month &&
-                    day.day == _currentDate.day;
-                return GestureDetector(
-                  onTap: () => setState(() => _currentDate = day),
-                  child: Container(
-                    width: 50,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? primaryColor
-                          : primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 60,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                controller: _scrollController,
+                itemCount: 1000,
+                itemBuilder: (ctx, idx) {
+                  final day = DateTime.now().add(Duration(days: idx - 500));
+                  final isSelected = day.year == _currentDate.year &&
+                      day.month == _currentDate.month &&
+                      day.day == _currentDate.day;
+                  return GestureDetector(
+                    onTap: () => setState(() => _currentDate = day),
+                    child: Container(
+                      width: 50,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? primaryColor
+                            : primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: [
+                          Text(DateFormat('E').format(day),
+                              style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black)),
+                          Text('${day.day}',
+                              style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black)),
+                        ],
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: Column(
-                      children: [
-                        Text(DateFormat('E').format(day),
-                            style: TextStyle(
-                                color:
-                                    isSelected ? Colors.white : Colors.black)),
-                        Text('${day.day}',
-                            style: TextStyle(
-                                color:
-                                    isSelected ? Colors.white : Colors.black)),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              TextButton(
-                onPressed: _goToToday,
-                child: const Text("Today >>", style: TextStyle(fontSize: 16)),
-              ),
-              const SizedBox(width: 190),
-              Text(
-                DateFormat('MMM d, yyyy').format(_currentDate),
-                style: const TextStyle(fontSize: 16),
-              ),
-            ],
-          ),
-          addedPatient
-              ?
-              //listview builder for medications list
-              FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _timeCardsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
-                    final timeCards = snapshot.data ?? [];
-
-                    if (timeCards.isEmpty) {
-                      return const Center(child: Text("No medications found."));
-                    }
-
-                    return SizedBox(
-                      height: MediaQuery.of(context).size.height - 370,
-                      child: ListView.builder(
-                        itemCount: timeCards.length,
-                        itemBuilder: (context, index) {
-                          final card = timeCards[index];
-
-                          return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              child: ListTile(
-                                title: Text(
-                                  "${card['time']}",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: _goToToday,
+                  child: const Text("Today >>", style: TextStyle(fontSize: 16)),
+                ),
+                const Spacer(),
+                Text(
+                  DateFormat('MMM d, yyyy').format(_currentDate),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+            // Wrap this part in Expanded to give listview a proper height
+            Expanded(
+              child: addedPatient
+                  ? Column(
+                      children: [
+                        // Patient info card
+                        SizedBox(
+                          height: 80,
+                          child: Container(
+                            margin: const EdgeInsets.only(
+                                left: 10, right: 10, bottom: 10, top: 0),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColorLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: primaryColor.withAlpha(100),
+                                  radius: 28,
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
                                 ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Row(
-                                    children: [
-                                      Icon(LucideIcons.pill,
-                                          size: 30, color: primaryColor),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    "Patient: $addedPatientName",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color.fromARGB(255, 12, 76, 158),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Use Expanded to let ListView take available space
+                        Expanded(
+                          child: FutureBuilder<List<Map<String, dynamic>>>(
+                            future: _timeCardsFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+                              if (snapshot.hasError) {
+                                return Center(
+                                    child: Text('Error: ${snapshot.error}'));
+                              }
+                              final timeCards = snapshot.data ?? [];
+
+                              if (timeCards.isEmpty) {
+                                return const Center(
+                                    child: Text("No medications found."));
+                              }
+
+                              return ListView.builder(
+                                itemCount: timeCards.length,
+                                itemBuilder: (context, index) {
+                                  final card = timeCards[index];
+                                  return Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    child: ListTile(
+                                      title: Text(
+                                        "${card['time']}",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                      subtitle: Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 4.0),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              card['med'],
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                            Icon(LucideIcons.pill,
+                                                size: 30, color: primaryColor),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    card['med'],
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                      'Take ${card['quantity']} ${card['form']}'),
+                                                ],
                                               ),
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            Text(
-                                                'Take ${card['quantity']} ${card['form']}'),
                                           ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                onTap: () {
-                                  _showDetailDialog(
-                                    context,
-                                    Provider.of<MedicationProvider>(context,
-                                            listen: false)
-                                        .deviceId,
-                                    card,
+                                      onTap: () {
+                                        _showDetailDialog(
+                                          context,
+                                          Provider.of<MedicationProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .deviceId,
+                                          card,
+                                        );
+                                      },
+                                    ),
                                   );
                                 },
-                              ));
-                        },
-                      ),
-                    );
-                  },
-                )
-              : Center(
-                  child: Column(
-                  children: [
-                    const SizedBox(height: 200),
-                    const Text("No patient added yet.",
-                        style: TextStyle(fontSize: 16)),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Please add a patient to continue.",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 230),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => CheckPatientEmailPage()),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("No patient added yet.",
+                                style: TextStyle(fontSize: 16)),
+                            const SizedBox(height: 20),
+                            const Text(
+                              "Please add a patient to continue.",
+                              style: TextStyle(fontSize: 16),
                             ),
-                          ),
-                          child: const Text(
-                            "Add Patient",
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
+                            const SizedBox(height: 40),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            CheckPatientEmailPage()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Add Patient",
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                )),
-        ],
+            )
+          ],
+        ),
       ),
     );
   }

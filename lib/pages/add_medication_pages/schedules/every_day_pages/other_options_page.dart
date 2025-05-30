@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:pill_buddy/main.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_instructions_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/change_the_med_icon_page.dart';
 import 'package:pill_buddy/pages/add_medication_pages/schedules/every_day_pages/add_refill_reminder_page.dart';
@@ -13,6 +14,11 @@ import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:android_intent_plus/flag.dart';
 
 /// Page for additional medication options before final save.
 class OtherOptionsPage extends StatefulWidget {
@@ -28,7 +34,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
   bool isPage3Done = false;
   bool isPage4Done = false;
   bool isUploading = false;
-  final _logger = Logger();
+  final logger = Logger();
 
   // Future<void> uploadMedicationToRealtimeDB(
   //     BuildContext context, MedicationEntry med, int doorIndex) async {
@@ -116,7 +122,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
     final deviceId =
         Provider.of<MedicationProvider>(context, listen: false).deviceId;
     if (deviceId.isEmpty) {
-      _logger.e("Device ID is not set. Cannot upload medication.");
+      logger.e("Device ID is not set. Cannot upload medication.");
       throw Exception('Device ID not set');
     }
 
@@ -141,23 +147,26 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         return '$hour.$minute';
       }
 
+      final provider = Provider.of<MedicationProvider>(context, listen: false);
+
+      double safeParse(String? input) => double.tryParse(input ?? '0') ?? 0.0;
+
       final doorPayload = {
         'added': true,
         'timesperday': timesPerDay,
         'intake': timesPerDay,
-        'totalQty':
-            Provider.of<MedicationProvider>(context, listen: false).totalQty,
-        'time1': fmt(0),
-        'time2': fmt(1),
-        'time3': fmt(2),
-        'time4': fmt(3),
+        'totalQty': safeParse(provider.totalQty),
+        'time1': safeParse(fmt(0)),
+        'time2': safeParse(fmt(1)),
+        'time3': safeParse(fmt(2)),
+        'time4': safeParse(fmt(3)),
         'clicked': false,
         'med': med.med ?? 'Unknown Medication',
         'form': med.form ?? 'Unknown Form',
         'purpose': med.purpose ?? 'No Purpose',
         'frequency': med.frequency ?? 'No Frequency',
-        'amount': med.amount ?? '0',
-        'quantity': med.quantity ?? '0',
+        'amount': safeParse(med.amount),
+        'quantity': safeParse(med.quantity),
         'expiration': (med.expiration ?? DateTime.now()).toString(),
       };
 
@@ -168,14 +177,87 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
       await dbRoot.child('temp').set(36.5); // Example temperature
       await dbRoot.child('hrate').set(77); // Example heart rate
 
-      _logger.i('✅ Uploaded to $deviceId/$doorKey (med), temp, hrate');
+      logger.i('✅ Uploaded to $deviceId/$doorKey (med), temp, hrate');
     } catch (e, st) {
-      _logger.e('⛔ Failed to upload medication or vital signs',
+      logger.e('⛔ Failed to upload medication or vital signs',
           error: e, stackTrace: st);
       rethrow;
     }
   }
 
+  /// Fetches up to 8 times (4 per door) and schedules notifications accordingly
+  Future<void> _scheduleDoorNotifications(
+      BuildContext context, String deviceId) async {
+    final dbRef = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://pill-buddy-cpe-nnovators-default-rtdb.asia-southeast1.firebasedatabase.app',
+    ).ref();
+
+    final doors = ['Door1', 'Door2'];
+    final List<TimeOfDay> times = [];
+
+    for (final door in doors) {
+      final snapshot = await dbRef.child(deviceId).child(door).get();
+      if (snapshot.exists) {
+        for (int i = 1; i <= 4; i++) {
+          final timeStr = snapshot.child('time$i').value?.toString();
+          final parsedTime = _parseTimeFromDoubleString(timeStr);
+          if (parsedTime != null) {
+            times.add(parsedTime);
+          }
+        }
+      }
+    }
+
+    for (int i = 0; i < times.length; i++) {
+      final time = times[i];
+      final today = DateTime.now();
+      final scheduledDateTime = DateTime(
+        today.year,
+        today.month,
+        today.day,
+        time.hour,
+        time.minute,
+      );
+
+      final scheduled = scheduledDateTime.isBefore(DateTime.now())
+          ? scheduledDateTime.add(const Duration(days: 1))
+          : scheduledDateTime;
+
+      await notificationsPlugin.zonedSchedule(
+        i, // unique ID per notification
+        'Pill Buddy Reminder 💊',
+        'Time to take your medication!',
+        tz.TZDateTime.from(scheduled, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'med_channel',
+            'Medication Reminders',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
+  }
+
+  /// Parses "08.30" → TimeOfDay(8,30), returns null on invalid
+  TimeOfDay? _parseTimeFromDoubleString(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty) return null;
+    try {
+      final parts = timeStr.split('.');
+      final hour = int.parse(parts[0]);
+      final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (_) {
+      return null;
+    }
+  }
   // Future<void> saveMedicationData() async {
   //   final provider = context.read<MedicationProvider>();
 
@@ -307,6 +389,15 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
               } on Exception catch (e) {
                 logger.e('Error uploading medication to door: $e');
               }
+              final deviceId =
+                  Provider.of<MedicationProvider>(context, listen: false)
+                      .deviceId;
+              try {
+                await _scheduleDoorNotifications(context, deviceId);
+              } on Exception catch (e) {
+                logger.e('Error scheduling notifications: $e');
+              }
+
               setState(() {
                 isUploading = false;
               });
@@ -317,7 +408,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
               // } catch (e) {
               //   logger.e('Error: $e');
               // }
-              _logger.e('Medications now in list: ${provider.medList.length}');
+              logger.e('Medications now in list: ${provider.medList.length}');
 
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -404,6 +495,12 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         toolbarHeight: 70,
         backgroundColor: primaryColor,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),

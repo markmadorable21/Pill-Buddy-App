@@ -133,8 +133,10 @@ class MedicationProvider with ChangeNotifier {
   int _calculatedAge = 0;
   String? _avatarUrl;
   String? get avatarUrl => _avatarUrl;
-  bool _isCaregiver = false;
+  bool _isCaregiver = true;
   bool get isCaregiver => _isCaregiver;
+  String _addedPatientName = 'Loading...';
+  String get addedPatientName => _addedPatientName;
 
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
@@ -193,7 +195,7 @@ class MedicationProvider with ChangeNotifier {
     }
   }
 
-  String _deviceId = 'PillBuddy2';
+  String _deviceId = 'PillBuddy1';
   String get deviceId => _deviceId;
 
   void setDeviceId(String id) {
@@ -323,6 +325,11 @@ class MedicationProvider with ChangeNotifier {
 
   void setCaregiver(bool value) {
     _isCaregiver = value;
+    notifyListeners();
+  }
+
+  void addPatientName(String name) {
+    _addedPatientName = name;
     notifyListeners();
   }
 
