@@ -169,8 +169,6 @@ class _InputDeviceIdPageState extends State<InputDeviceIdPage> {
 
                         bool isTrackingBPM = provider.isTrackingBPM;
                         bool isTrackingTemp = provider.isTrackingTemp;
-                        bool isTrackingWeight = provider.isTrackingWeight;
-                        bool isTrackingHeight = provider.isTrackingHeight;
 
                         if (isCaregiver) {
                           Navigator.push(
@@ -178,43 +176,26 @@ class _InputDeviceIdPageState extends State<InputDeviceIdPage> {
                             MaterialPageRoute(
                                 builder: (_) => const MainPageCaregiver()),
                           );
-                        } else {
+                        } else if (!isCaregiver) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const DoorSelectionPage()),
                           );
-                        }
-                        if (isTrackingBPM && !isCaregiver || isCaregiver) {
+                        } else if (isTrackingBPM && !isCaregiver ||
+                            isCaregiver) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const HeartRateMonitorPage()),
                           );
-                        }
-
-                        if (isTrackingTemp && !isCaregiver || isCaregiver) {
+                        } else if (isTrackingTemp && !isCaregiver ||
+                            isCaregiver) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const TemperatureMonitorPage()),
                           );
-                        }
-
-                        if (isTrackingWeight && !isCaregiver || isCaregiver) {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (_) => const ReusableAddMedNamePage()),
-                          // );
-                        }
-
-                        if (isTrackingHeight && !isCaregiver || isCaregiver) {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (_) => const ReusableAddMedNamePage()),
-                          // );
                         }
                       }
                     : null,

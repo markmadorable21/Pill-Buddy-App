@@ -194,7 +194,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginPageUserType(),
+      home: const MainPageCaregiver(),
     );
   }
 }

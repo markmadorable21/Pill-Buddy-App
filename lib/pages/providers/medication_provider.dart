@@ -133,7 +133,7 @@ class MedicationProvider with ChangeNotifier {
   int _calculatedAge = 0;
   String? _avatarUrl;
   String? get avatarUrl => _avatarUrl;
-  bool _isCaregiver = false;
+  bool _isCaregiver = true;
   bool get isCaregiver => _isCaregiver;
   String _addedPatientName = 'Loading...';
   String get addedPatientName => _addedPatientName;

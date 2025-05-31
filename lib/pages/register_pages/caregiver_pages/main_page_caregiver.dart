@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reminders_page.dart';
 import 'package:pill_buddy/pages/main_pages/edit_profile_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
+import 'package:pill_buddy/pages/main_pages/notifications_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
@@ -32,7 +33,7 @@ class _MainPageCaregiverState extends State<MainPageCaregiver> {
   final List<Widget> pages = const [
     TestHomePageCaregiver(),
     TrackersPage(),
-    // RemindersPage(),
+    NotificationsPageCaregiver(),
     // ManagePage(),
   ];
 

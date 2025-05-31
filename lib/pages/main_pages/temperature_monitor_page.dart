@@ -252,7 +252,7 @@ class _TemperatureMonitorPageState extends State<TemperatureMonitorPage>
                                 ? Colors.red
                                 : label == 'Low'
                                     ? Colors.blue
-                                    : Theme.of(context).primaryColor,
+                                    : Colors.green,
                           ),
                         ),
                       ),

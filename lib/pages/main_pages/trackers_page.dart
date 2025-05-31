@@ -40,31 +40,6 @@ class TrackersPage extends StatelessWidget {
             // Body Temperature card tapped
             print("Body Temperature tapped");
           }),
-          const SizedBox(height: 5),
-          _buildTrackerCard(
-              Icons.monitor_weight, "Weight", context, Colors.orange, () {
-            provider.setIsTrackingWeight(true);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const InputDeviceIdPage(),
-              ),
-            );
-            // Weight card tapped
-            print("Weight tapped");
-          }),
-          const SizedBox(height: 5),
-          _buildTrackerCard(Icons.height, "Height", context, Colors.purple, () {
-            provider.setIsTrackingHeight(true);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const InputDeviceIdPage(),
-              ),
-            );
-            // Height card tapped
-            print("Height tapped");
-          }),
           const SizedBox(height: 10),
           _buildWelcomeCard(context),
           const SizedBox(height: 10),

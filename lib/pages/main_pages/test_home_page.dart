@@ -6,7 +6,6 @@ import 'package:logger/logger.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pill_buddy/pages/main_pages/clicked_status_text.dart';
 import 'package:pill_buddy/pages/main_pages/input_device_id_page.dart';
-import 'package:pill_buddy/pages/main_pages/medication_status_widget.dart';
 import 'package:provider/provider.dart';
 
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -543,11 +542,16 @@ class _TestHomePageState extends State<TestHomePage> {
                                 ),
                               ),
 
-                              Expanded(
-                                child: MedicationStatusWidget(
-                                  deviceId: provider.deviceId,
-                                ),
-                              )
+                              // RIGHT: Text beside the card
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 25),
+                                  MedicationStatusMonitor(
+                                    deviceId: provider.deviceId,
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
