@@ -139,6 +139,7 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
           Provider.of<MedicationProvider>(context, listen: false)
               .selectedTimesPerDay);
       final timesList = med.selectedTimes ?? [];
+
       String fmt(int idx) {
         if (idx >= timesList.length) return '';
         final t = timesList[idx];
@@ -166,22 +167,25 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         'expiration': (med.expiration ?? DateTime.now()).toString(),
       };
 
-// Dynamically add timeX and statusX fields based on timesList
+      // Add timeX, statusX, isNotifiedX
       for (int i = 0; i < 4; i++) {
         final timeKey = 'time${i + 1}';
         final statusKey = 'status${i + 1}';
-        final formattedTime = fmt(i);
+        final notifyKey = 'isNotified${i + 1}';
 
-        doorPayload[timeKey] =
-            formattedTime.isEmpty ? '' : double.parse(formattedTime);
-        doorPayload[statusKey] = formattedTime.isEmpty ? '' : 'Not up yet';
+        final formattedTime = fmt(i);
+        final hasTime = formattedTime.isNotEmpty;
+
+        doorPayload[timeKey] = hasTime ? double.parse(formattedTime) : '';
+        doorPayload[statusKey] = hasTime ? 'Not up yet' : '';
+        doorPayload[notifyKey] = hasTime ? false : '';
       }
-      // Set medication door data
+
       await dbRoot.child(doorKey).set(doorPayload);
 
-      // Set temp and hrate with number value (can be dynamic, here static sample values)
-      await dbRoot.child('temp').set(36.5); // Example temperature
-      await dbRoot.child('hrate').set(77); // Example heart rate
+      // Upload sample vitals
+      await dbRoot.child('temp').set(36.5);
+      await dbRoot.child('hrate').set(77);
 
       logger.i('✅ Uploaded to $deviceId/$doorKey (med), temp, hrate');
     } catch (e, st) {

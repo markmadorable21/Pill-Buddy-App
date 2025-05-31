@@ -35,6 +35,7 @@ import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/providers/address_provider.dart';
 import 'package:pill_buddy/pages/providers/door_status_provider.dart';
+import 'package:pill_buddy/pages/providers/notification_badge_provider.dart';
 import 'package:pill_buddy/pages/providers/testmedprovider.dart';
 import 'package:pill_buddy/pages/register_pages/caregiver_pages/create_my_profile_name_page_caregiver.dart';
 import 'package:pill_buddy/pages/register_pages/caregiver_pages/create_my_profile_page_caregiver.dart';
@@ -140,6 +141,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AddressProvider()),
         ChangeNotifierProvider(create: (_) => TestMedicationProvider()),
         ChangeNotifierProvider(create: (_) => DoorStatusProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationBadge()),
       ],
       child: const MyApp(),
     ),
@@ -194,7 +196,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainPageCaregiver(),
+      home: const MainPage(),
     );
   }
 }

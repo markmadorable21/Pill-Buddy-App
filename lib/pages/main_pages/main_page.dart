@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/add_medication_pages/reminders_page.dart';
 import 'package:pill_buddy/pages/main_pages/edit_profile_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
+import 'package:pill_buddy/pages/main_pages/patient_notification_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
 import 'package:pill_buddy/pages/main_pages/trackers_page.dart';
 import 'package:pill_buddy/pages/main_pages/medication_page.dart';
@@ -10,6 +11,7 @@ import 'package:pill_buddy/pages/main_pages/manage_page.dart';
 import 'package:pill_buddy/pages/main_pages/user_avatar_widget.dart';
 import 'package:pill_buddy/pages/main_pages/username_widget.dart';
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:pill_buddy/pages/providers/notification_badge_provider.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -31,6 +33,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> pages = const [
     TestHomePage(),
     TrackersPage(),
+    NotificationsPagePatient(),
     RemindersPage(),
     ManagePage(),
   ];
@@ -76,12 +79,45 @@ class _MainPageState extends State<MainPage> {
             currentPage = value;
           });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.update), label: 'Trackers'),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.update), label: 'Trackers'),
           BottomNavigationBarItem(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications),
+                Positioned(
+                  right: 0,
+                  top: -4,
+                  child: Consumer<NotificationBadge>(
+                    builder: (_, badge, __) => badge.count > 0
+                        ? Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${badge.count}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                )
+              ],
+            ),
+            label: 'Notifications', // This is OK here
+          ),
+          const BottomNavigationBarItem(
               icon: Icon(Icons.medication), label: 'Refill'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Manage'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.list), label: 'Manage'),
         ],
       ),
       endDrawer: Drawer(
