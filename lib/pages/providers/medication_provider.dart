@@ -133,10 +133,18 @@ class MedicationProvider with ChangeNotifier {
   int _calculatedAge = 0;
   String? _avatarUrl;
   String? get avatarUrl => _avatarUrl;
-  bool _isCaregiver = true;
+  bool _isCaregiver = false;
   bool get isCaregiver => _isCaregiver;
   String _addedPatientName = 'Loading...';
   String get addedPatientName => _addedPatientName;
+  bool _isTrackingBPM = false;
+  bool get isTrackingBPM => _isTrackingBPM;
+  bool _isTrackingTemp = false;
+  bool get isTrackingTemp => _isTrackingTemp;
+  bool _isTrackingWeight = false;
+  bool get isTrackingWeight => _isTrackingWeight;
+  bool _isTrackingHeight = false;
+  bool get isTrackingHeight => _isTrackingHeight;
 
   // Define a Set to hold selected options
   Set<String> _selectedOptions = {};
@@ -325,6 +333,26 @@ class MedicationProvider with ChangeNotifier {
 
   void setCaregiver(bool value) {
     _isCaregiver = value;
+    notifyListeners();
+  }
+
+  void setIsTrackingBPM(bool value) {
+    _isTrackingBPM = value;
+    notifyListeners();
+  }
+
+  void setIsTrackingTemp(bool value) {
+    _isTrackingTemp = value;
+    notifyListeners();
+  }
+
+  void setIsTrackingWeight(bool value) {
+    _isTrackingWeight = value;
+    notifyListeners();
+  }
+
+  void setIsTrackingHeight(bool value) {
+    _isTrackingHeight = value;
     notifyListeners();
   }
 

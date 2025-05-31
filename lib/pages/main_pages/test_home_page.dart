@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pill_buddy/pages/main_pages/clicked_status_text.dart';
 import 'package:pill_buddy/pages/main_pages/input_device_id_page.dart';
+import 'package:pill_buddy/pages/main_pages/medication_status_widget.dart';
 import 'package:provider/provider.dart';
 
 import 'package:pill_buddy/pages/providers/medication_provider.dart';
@@ -479,106 +481,78 @@ class _TestHomePageState extends State<TestHomePage> {
                     final card = timeCards[index];
 
                     return Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-//                       child: ListTile(
-//   title: Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     mainAxisSize: MainAxisSize.min,
-//     children: [
-//       Text(
-//         "${card['time']}",
-//         style: const TextStyle(
-//           fontWeight: FontWeight.bold,
-//           fontSize: 18,
-//         ),
-//       ),
-//       const SizedBox(height: 6),
-//       Row(
-//         children: [
-//           Container(
-//             width: 20,
-//             height: 20,
-//             decoration: BoxDecoration(
-//               color: Colors.blue, // or any color you want
-//               borderRadius: BorderRadius.circular(4),
-//             ),
-//             child: const Icon(
-//               Icons.medical_services, // choose an icon you prefer
-//               size: 16,
-//               color: Colors.white,
-//             ),
-//           ),
-//           const SizedBox(width: 8),
-//           Expanded(
-//             child: Container(
-//               height: 1,
-//               color: Colors.grey[400], // horizontal line color
-//             ),
-//           ),
-//           const SizedBox(width: 8),
-//           Text(
-//             card['med'],
-//             style: const TextStyle(fontSize: 16),
-//           ),
-//         ],
-//       ),
-//     ],
-//   ),
-//   subtitle: Text("Take ${card['quantity']} ${card['form']}"),
-//   onTap: () {
-//     _showDetailDialog(
-//       context,
-//       Provider.of<MedicationProvider>(context, listen: false).deviceId,
-//       card,
-//     );
-//   },
-// ),
-
-                        child: ListTile(
-                          title: Text(
-                            "${card['time']}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Row(
-                              children: [
-                                Icon(LucideIcons.pill,
-                                    size: 30, color: primaryColor),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        card['med'],
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      child: InkWell(
+                        onTap: () {
+                          _showDetailDialog(
+                            context,
+                            Provider.of<MedicationProvider>(context,
+                                    listen: false)
+                                .deviceId,
+                            card,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // LEFT: Current card contents
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${card['time']}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
                                       ),
-                                      Text(
-                                          'Take ${card['quantity']} ${card['form']}'),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(LucideIcons.pill,
+                                            size: 30, color: primaryColor),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                card['med'],
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                  'Take ${card['quantity']} ${card['form']}'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+
+                              Expanded(
+                                child: MedicationStatusWidget(
+                                  deviceId: provider.deviceId,
+                                ),
+                              )
+                            ],
                           ),
-                          onTap: () {
-                            _showDetailDialog(
-                              context,
-                              Provider.of<MedicationProvider>(context,
-                                      listen: false)
-                                  .deviceId,
-                              card,
-                            );
-                          },
-                        ));
+                        ),
+                      ),
+                    );
                   },
                 ),
               );

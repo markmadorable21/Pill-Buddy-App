@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:pill_buddy/pages/add_medication_pages/door_selection_page.dart';
+import 'package:pill_buddy/pages/main_pages/heartrate_monitor_page.dart';
+import 'package:pill_buddy/pages/main_pages/temperature_monitor_page.dart';
 import 'package:pill_buddy/pages/providers/door_status_provider.dart';
 import 'package:pill_buddy/pages/register_pages/caregiver_pages/main_page_caregiver.dart';
 import 'package:provider/provider.dart';
@@ -164,6 +166,12 @@ class _InputDeviceIdPageState extends State<InputDeviceIdPage> {
                                 context,
                                 listen: false)
                             .isCaregiver;
+
+                        bool isTrackingBPM = provider.isTrackingBPM;
+                        bool isTrackingTemp = provider.isTrackingTemp;
+                        bool isTrackingWeight = provider.isTrackingWeight;
+                        bool isTrackingHeight = provider.isTrackingHeight;
+
                         if (isCaregiver) {
                           Navigator.push(
                             context,
@@ -176,6 +184,37 @@ class _InputDeviceIdPageState extends State<InputDeviceIdPage> {
                             MaterialPageRoute(
                                 builder: (_) => const DoorSelectionPage()),
                           );
+                        }
+                        if (isTrackingBPM && !isCaregiver || isCaregiver) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const HeartRateMonitorPage()),
+                          );
+                        }
+
+                        if (isTrackingTemp && !isCaregiver || isCaregiver) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const TemperatureMonitorPage()),
+                          );
+                        }
+
+                        if (isTrackingWeight && !isCaregiver || isCaregiver) {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (_) => const ReusableAddMedNamePage()),
+                          // );
+                        }
+
+                        if (isTrackingHeight && !isCaregiver || isCaregiver) {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (_) => const ReusableAddMedNamePage()),
+                          // );
                         }
                       }
                     : null,

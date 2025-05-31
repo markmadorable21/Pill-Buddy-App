@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pill_buddy/pages/main_pages/input_device_id_page.dart';
+import 'package:pill_buddy/pages/providers/medication_provider.dart';
+import 'package:provider/provider.dart';
 
 class TrackersPage extends StatelessWidget {
   const TrackersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationProvider>(context, listen: false);
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -13,37 +17,53 @@ class TrackersPage extends StatelessWidget {
           const SizedBox(height: 8),
           _buildTrackerCard(
               Icons.monitor_heart, "Heart Rate (BPM)", context, Colors.red, () {
+            provider.setIsTrackingBPM(true);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InputDeviceIdPage()),
+            );
             // Heart Rate card tapped
             print("Heart Rate tapped");
           }),
           const SizedBox(height: 5),
           _buildTrackerCard(Icons.device_thermostat_sharp, "Body Temperature",
               context, Colors.blue, () {
+            provider.setIsTrackingTemp(true);
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const InputDeviceIdPage(),
+              ),
+            );
+
             // Body Temperature card tapped
             print("Body Temperature tapped");
           }),
           const SizedBox(height: 5),
           _buildTrackerCard(
-              Icons.bloodtype, "Blood Pressure", context, Colors.green, () {
-            // Blood Pressure card tapped
-            print("Blood Pressure tapped");
-          }),
-          const SizedBox(height: 5),
-          _buildTrackerCard(
               Icons.monitor_weight, "Weight", context, Colors.orange, () {
+            provider.setIsTrackingWeight(true);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const InputDeviceIdPage(),
+              ),
+            );
             // Weight card tapped
             print("Weight tapped");
           }),
           const SizedBox(height: 5),
           _buildTrackerCard(Icons.height, "Height", context, Colors.purple, () {
+            provider.setIsTrackingHeight(true);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const InputDeviceIdPage(),
+              ),
+            );
             // Height card tapped
             print("Height tapped");
-          }),
-          const SizedBox(height: 5),
-          _buildTrackerCard(
-              Icons.calculate, "BMI Calculator", context, Colors.amber, () {
-            // BMI Calculator card tapped
-            print("BMI Calculator tapped");
           }),
           const SizedBox(height: 10),
           _buildWelcomeCard(context),

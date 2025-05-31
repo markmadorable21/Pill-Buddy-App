@@ -194,7 +194,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
     final age = medProv.calculatedAge;
     final email = medProv.inputtedEmail;
     final password = medProv.inputtedPassword;
-    final gender = medProv.selectedGender;
+    final sex = medProv.selectedGender;
     final address = addressProv.completeAddress.isEmpty
         ? 'No address provided'
         : addressProv.completeAddress;
@@ -279,7 +279,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                     title: Text('Age: $age')),
                 ListTile(
                     leading: const Icon(Icons.male, color: Colors.purple),
-                    title: Text('Gender: $gender')),
+                    title: Text('Sex: $sex')),
                 ListTile(
                     leading:
                         const Icon(Icons.location_city, color: Colors.brown),
@@ -310,7 +310,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                   logger.e("Birthdate: $birthdate");
                   logger.e("Age: $age");
 
-                  logger.e("Gender: $gender");
+                  logger.e("Gender: $sex");
 
                   logger.e("address: $address");
 
@@ -331,7 +331,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                             .read<MedicationProvider>()
                             .birthDateFormatted,
                         'age': context.read<MedicationProvider>().calculatedAge,
-                        'gender':
+                        'sex':
                             context.read<MedicationProvider>().selectedGender,
                         'address':
                             context.read<AddressProvider>().completeAddress,
@@ -360,7 +360,7 @@ class _UserInputConfirmationPage extends State<UserInputConfirmationPage> {
                             .read<MedicationProvider>()
                             .birthDateFormatted,
                         'age': context.read<MedicationProvider>().calculatedAge,
-                        'gender':
+                        'sex':
                             context.read<MedicationProvider>().selectedGender,
                         'address':
                             context.read<AddressProvider>().completeAddress,

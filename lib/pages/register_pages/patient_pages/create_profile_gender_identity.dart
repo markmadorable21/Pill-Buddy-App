@@ -18,19 +18,6 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
   final List<String> genderOptions = [
     "Male",
     "Female",
-    "Non-binary",
-    "Agender",
-    "Bigender",
-    "Cis Man",
-    "Cis Woman",
-    "Genderless",
-    "Genderqueer",
-    "Third Gender",
-    "Transgender",
-    "Trans Man",
-    "Trans Woman",
-    "Two-Spirit",
-    "Prefer not to say"
   ];
   var logger = Logger();
 
@@ -73,7 +60,7 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 500),
                 child: const Text(
-                  "How do you identify?",
+                  "What is your sex?",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
@@ -167,7 +154,7 @@ class _CreateProfileIdentityPageState extends State<CreateProfileIdentityPage> {
                                     const CreateProfileBirthdatePage()),
                           );
                           logger.e(
-                              'Selected Gender: ${Provider.of<MedicationProvider>(context, listen: false).selectedGender}');
+                              'Selected Sex: ${Provider.of<MedicationProvider>(context, listen: false).selectedGender}');
                         }
                       : null,
                   child: const Text(

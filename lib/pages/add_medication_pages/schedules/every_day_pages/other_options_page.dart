@@ -151,15 +151,11 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
 
       double safeParse(String? input) => double.tryParse(input ?? '0') ?? 0.0;
 
-      final doorPayload = {
+      final Map<String, dynamic> doorPayload = {
         'added': true,
         'timesperday': timesPerDay,
-        'intake': timesPerDay,
+        'intake': 0,
         'totalQty': safeParse(provider.totalQty),
-        'time1': safeParse(fmt(0)),
-        'time2': safeParse(fmt(1)),
-        'time3': safeParse(fmt(2)),
-        'time4': safeParse(fmt(3)),
         'clicked': false,
         'med': med.med ?? 'Unknown Medication',
         'form': med.form ?? 'Unknown Form',
@@ -170,6 +166,16 @@ class _OtherOptionsPageState extends State<OtherOptionsPage> {
         'expiration': (med.expiration ?? DateTime.now()).toString(),
       };
 
+// Dynamically add timeX and statusX fields based on timesList
+      for (int i = 0; i < 4; i++) {
+        final timeKey = 'time${i + 1}';
+        final statusKey = 'status${i + 1}';
+        final formattedTime = fmt(i);
+
+        doorPayload[timeKey] =
+            formattedTime.isEmpty ? '' : double.parse(formattedTime);
+        doorPayload[statusKey] = formattedTime.isEmpty ? '' : 'Not up yet';
+      }
       // Set medication door data
       await dbRoot.child(doorKey).set(doorPayload);
 

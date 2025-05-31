@@ -29,6 +29,7 @@ import 'package:pill_buddy/pages/add_patient_pages/check_patient_email_page.dart
 import 'package:pill_buddy/pages/login_pages/login_page.dart';
 import 'package:pill_buddy/pages/login_pages/login_page_user_type.dart';
 import 'package:pill_buddy/pages/main_pages/add_medication_page.dart';
+import 'package:pill_buddy/pages/main_pages/heartrate_monitor_page.dart';
 import 'package:pill_buddy/pages/main_pages/home_page.dart';
 import 'package:pill_buddy/pages/main_pages/main_page.dart';
 import 'package:pill_buddy/pages/main_pages/test_home_page.dart';
@@ -43,6 +44,7 @@ import 'package:pill_buddy/pages/register_pages/patient_pages/create_my_profile_
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_birthdate_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_confirm_email.dart';
+import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_gender_identity.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/create_profile_hope_to_achieve_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/set_address_page.dart';
 import 'package:pill_buddy/pages/register_pages/patient_pages/user_input_confirmation_page.dart';
@@ -192,7 +194,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const ScheduleTestPage(),
+      home: const LoginPageUserType(),
     );
   }
 }
